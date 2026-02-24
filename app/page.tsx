@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import {
   Rocket,
   Play,
@@ -43,6 +44,12 @@ export default function Home() {
                   {item}
                 </a>
               ))}
+              <Link
+                href="/courses"
+                className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+              >
+                강의
+              </Link>
             </div>
 
             {/* Auth Buttons */}
