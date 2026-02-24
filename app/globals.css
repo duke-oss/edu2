@@ -1,8 +1,7 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* Using Noto Sans KR as default sans font */
-  --font-sans: var(--font-noto-sans-kr), ui-sans-serif, system-ui, sans-serif,
+  --font-sans: "Pretendard", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
