@@ -1,267 +1,195 @@
 "use client";
 
-import { useRef } from "react";
+import { useState, useRef } from "react";
 import {
   motion,
   useMotionValue,
   useSpring,
   useTransform,
-  useMotionTemplate,
 } from "motion/react";
-import { Ship, Plane, Play, ChevronDown } from "lucide-react";
+import {
+  MapPin,
+  ArrowLeftRight,
+  Calendar,
+  Package,
+  Search,
+  X,
+  ExternalLink,
+  Play,
+  Navigation,
+  LayoutGrid,
+} from "lucide-react";
 
-const SPRING = { stiffness: 48, damping: 18, mass: 0.9 };
+const SPRING = { stiffness: 50, damping: 22 };
 
-const STARS = Array.from({ length: 90 }, (_, i) => ({
-  id: i,
-  x: Math.random() * 100,
-  y: Math.random() * 100,
-  size: Math.random() * 1.6 + 0.4,
-  opacity: Math.random() * 0.5 + 0.1,
-  duration: 2 + Math.random() * 3,
-  delay: Math.random() * 4,
-}));
-
-const PORTS = [
-  { x: 162, y: 218 },
-  { x: 218, y: 188 },
-  { x: 268, y: 200 },
-  { x: 322, y: 208 },
-  { x: 348, y: 248 },
-  { x: 338, y: 175 },
-  { x: 178, y: 285 },
-  { x: 232, y: 260 },
+// Simplified continent paths (SVG 560×560, globe center 280,280, radius 235)
+const CONTINENTS = [
+  // North America
+  "M 74,92 L 192,84 L 208,118 L 190,165 L 160,190 L 120,200 L 76,180 L 60,140 Z",
+  // South America
+  "M 126,210 L 174,204 L 192,240 L 180,312 L 146,332 L 116,308 L 103,274 L 110,237 Z",
+  // Europe
+  "M 222,88 L 284,82 L 300,104 L 283,127 L 248,134 L 222,116 Z",
+  // Africa
+  "M 228,132 L 296,125 L 313,153 L 306,220 L 276,242 L 240,235 L 223,200 L 223,163 Z",
+  // Asia (large)
+  "M 288,77 L 418,70 L 440,100 L 426,158 L 379,180 L 308,172 L 282,144 L 282,102 Z",
+  // SE Asia
+  "M 360,183 L 400,178 L 413,200 L 396,220 L 360,217 L 346,200 Z",
+  // Australia
+  "M 378,222 L 436,215 L 453,248 L 436,277 L 390,280 L 366,257 Z",
 ];
 
-const ROUTES = [
-  { d: "M162,218 Q200,165 218,188", delay: 1.2 },
-  { d: "M218,188 Q245,180 268,200", delay: 1.5 },
-  { d: "M268,200 Q298,198 322,208", delay: 1.8 },
-  { d: "M322,208 Q337,228 348,248", delay: 2.1 },
-  { d: "M162,218 Q170,252 178,285", delay: 2.4 },
-  { d: "M218,188 Q226,225 232,260", delay: 2.7 },
+// Arc trade routes (fly above the globe)
+const ARCS = [
+  {
+    id: "arc1",
+    d: "M 452,182 C 516,32 395,-30 252,90",
+    color: "#22c55e",
+    markerId: "m-green",
+  },
+  {
+    id: "arc2",
+    d: "M 432,215 C 528,55 415,-40 265,78",
+    color: "#a3e635",
+    markerId: "m-lime",
+  },
+  {
+    id: "arc3",
+    d: "M 412,158 C 490,18 370,-48 220,98",
+    color: "#2563eb",
+    markerId: "m-blue",
+  },
 ];
 
-// ─────────────────────────────────────────────────
-// Globe
-// ─────────────────────────────────────────────────
-function Globe3D({
+// Arc endpoint dots
+const ARC_DOTS = [
+  { cx: 452, cy: 182, color: "#22c55e" },
+  { cx: 252, cy: 90,  color: "#22c55e" },
+  { cx: 432, cy: 215, color: "#a3e635" },
+  { cx: 265, cy: 78,  color: "#a3e635" },
+  { cx: 412, cy: 158, color: "#2563eb" },
+  { cx: 220, cy: 98,  color: "#2563eb" },
+];
+
+function GlobeSVG({
   springX,
   springY,
 }: {
   springX: ReturnType<typeof useSpring>;
   springY: ReturnType<typeof useSpring>;
 }) {
-  const rotateY = useTransform(springX, [-400, 400], [-14, 14]);
-  const rotateX = useTransform(springY, [-400, 400], [10, -10]);
+  const rotateY = useTransform(springX, [-400, 400], [-5, 5]);
+  const rotateX = useTransform(springY, [-400, 400], [3, -3]);
 
   return (
     <motion.div
-      style={{ rotateY, rotateX, transformPerspective: 1400 }}
-      className="w-[400px] h-[400px] sm:w-[500px] sm:h-[500px] lg:w-[580px] lg:h-[580px]"
+      style={{ rotateY, rotateX, transformPerspective: 1200 }}
+      className="w-full"
     >
-      <svg viewBox="0 0 500 500" width="100%" height="100%">
+      <svg viewBox="0 0 560 560" width="100%" height="100%">
         <defs>
-          <radialGradient id="globeGrad" cx="36%" cy="30%" r="70%">
-            <stop offset="0%" stopColor="#60a5fa" />
-            <stop offset="30%" stopColor="#2563eb" />
-            <stop offset="65%" stopColor="#1e3a8a" />
-            <stop offset="100%" stopColor="#060c1a" />
+          <radialGradient id="globeLight" cx="38%" cy="32%" r="68%">
+            <stop offset="0%"   stopColor="#f0f7ff" />
+            <stop offset="55%"  stopColor="#ddeeff" />
+            <stop offset="100%" stopColor="#bfd4ef" />
           </radialGradient>
-          <radialGradient id="edgeDark" cx="50%" cy="50%" r="50%">
-            <stop offset="70%" stopColor="transparent" />
-            <stop offset="100%" stopColor="rgba(0,0,15,0.75)" />
+          <radialGradient id="globeEdge" cx="50%" cy="50%" r="50%">
+            <stop offset="72%"  stopColor="transparent" />
+            <stop offset="100%" stopColor="rgba(37,99,235,0.12)" />
           </radialGradient>
-          <filter id="portGlow">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" />
-          </filter>
-          <filter id="lineGlow">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="1.8" result="b" />
-            <feMerge>
-              <feMergeNode in="b" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-          <clipPath id="globeClip">
-            <circle cx="250" cy="250" r="220" />
+          <clipPath id="globeC">
+            <circle cx="280" cy="280" r="235" />
           </clipPath>
+          {/* Arrow markers */}
+          {["green", "lime", "blue"].map((c, i) => (
+            <marker
+              key={c}
+              id={`m-${c}`}
+              markerWidth="7"
+              markerHeight="7"
+              refX="3.5"
+              refY="3.5"
+              orient="auto"
+            >
+              <path
+                d="M 0,0 L 7,3.5 L 0,7 Z"
+                fill={["#22c55e", "#a3e635", "#2563eb"][i]}
+              />
+            </marker>
+          ))}
         </defs>
 
-        {/* Atmosphere */}
-        <circle cx="250" cy="250" r="248" fill="rgba(59,130,246,0.04)" />
-        <circle cx="250" cy="250" r="236" fill="rgba(59,130,246,0.06)" />
-        <circle cx="250" cy="250" r="226" fill="rgba(96,165,250,0.07)" />
+        {/* Globe fill */}
+        <circle cx="280" cy="280" r="235" fill="url(#globeLight)" />
 
-        {/* Sphere */}
-        <circle cx="250" cy="250" r="220" fill="url(#globeGrad)" />
-
-        {/* Latitude */}
-        {[-60, -30, 0, 30, 60].map((lat) => {
-          const rad = (lat * Math.PI) / 180;
-          const cy = 250 - Math.sin(rad) * 220;
-          const rx = Math.cos(rad) * 220;
-          const ry = Math.cos(rad) * 58;
-          return (
-            <ellipse
-              key={lat}
-              cx="250" cy={cy} rx={rx} ry={ry}
-              fill="none" stroke="rgba(147,197,253,0.2)" strokeWidth="0.8"
-              clipPath="url(#globeClip)"
-            />
-          );
-        })}
-
-        {/* Longitude */}
-        {[0, 30, 60, 90, 120, 150].map((lon) => {
-          const rad = (lon * Math.PI) / 180;
-          const rx = Math.abs(Math.cos(rad)) * 220 || 0.5;
-          return (
-            <ellipse
-              key={lon}
-              cx="250" cy="250" rx={rx} ry="220"
-              fill="none" stroke="rgba(147,197,253,0.15)" strokeWidth="0.8"
-              clipPath="url(#globeClip)"
-            />
-          );
-        })}
-
-        {/* Trade route glow */}
-        {ROUTES.map((r, i) => (
-          <motion.path
-            key={`g${i}`} d={r.d}
-            fill="none" stroke="rgba(34,211,238,0.2)" strokeWidth="4"
-            strokeLinecap="round" clipPath="url(#globeClip)" filter="url(#lineGlow)"
-            initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
-            transition={{ duration: 1.2, delay: r.delay }}
+        {/* Continents */}
+        {CONTINENTS.map((d, i) => (
+          <path
+            key={i}
+            d={d}
+            fill="#8ab4dc"
+            opacity="0.55"
+            clipPath="url(#globeC)"
           />
         ))}
-
-        {/* Trade route lines */}
-        {ROUTES.map((r, i) => (
-          <motion.path
-            key={`l${i}`} d={r.d}
-            fill="none" stroke="rgba(34,211,238,0.75)" strokeWidth="1"
-            strokeDasharray="4 3" strokeLinecap="round" clipPath="url(#globeClip)"
-            initial={{ pathLength: 0, opacity: 0 }}
-            animate={{ pathLength: 1, opacity: 1 }}
-            transition={{ duration: 1.2, delay: r.delay }}
-          />
-        ))}
-
-        {/* Port pulse rings */}
-        {PORTS.map((p, i) => (
-          <motion.circle
-            key={`pr${i}`} cx={p.x} cy={p.y} r="5"
-            fill="none" stroke="rgba(34,211,238,0.45)" strokeWidth="1"
-            clipPath="url(#globeClip)"
-            animate={{ r: [5, 11, 5], opacity: [0.6, 0, 0.6] }}
-            transition={{ duration: 2.5, repeat: Infinity, delay: i * 0.32, ease: "easeOut" }}
-          />
-        ))}
-
-        {/* Port dots */}
-        {PORTS.map((p, i) => (
-          <g key={`pd${i}`}>
-            <circle cx={p.x} cy={p.y} r="5" fill="rgba(34,211,238,0.3)"
-              clipPath="url(#globeClip)" filter="url(#portGlow)" />
-            <circle cx={p.x} cy={p.y} r="2.5" fill="#22d3ee" clipPath="url(#globeClip)" />
-          </g>
-        ))}
-
-        {/* Specular */}
-        <ellipse cx="188" cy="175" rx="80" ry="56"
-          fill="rgba(255,255,255,0.07)" clipPath="url(#globeClip)" />
-        <ellipse cx="178" cy="168" rx="36" ry="24"
-          fill="rgba(255,255,255,0.06)" clipPath="url(#globeClip)" />
 
         {/* Edge depth */}
-        <circle cx="250" cy="250" r="220" fill="url(#edgeDark)" />
+        <circle cx="280" cy="280" r="235" fill="url(#globeEdge)" />
+        <circle
+          cx="280" cy="280" r="235"
+          fill="none" stroke="rgba(37,99,235,0.08)" strokeWidth="1.5"
+        />
+
+        {/* Arc trade routes */}
+        {ARCS.map((arc) => (
+          <motion.path
+            key={arc.id}
+            d={arc.d}
+            fill="none"
+            stroke={arc.color}
+            strokeWidth="2"
+            strokeLinecap="round"
+            markerEnd={`url(#${arc.markerId})`}
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{ pathLength: 1, opacity: 1 }}
+            transition={{ duration: 1.4, delay: 0.6 + ARCS.indexOf(arc) * 0.2 }}
+          />
+        ))}
+
+        {/* Arc endpoint dots */}
+        {ARC_DOTS.map((dot, i) => (
+          <motion.circle
+            key={i}
+            cx={dot.cx} cy={dot.cy} r="3.5"
+            fill={dot.color}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.3, delay: 0.8 + i * 0.1 }}
+          />
+        ))}
       </svg>
     </motion.div>
   );
 }
 
-// ─────────────────────────────────────────────────
-// Floating vehicle card
-// ─────────────────────────────────────────────────
-type VehicleProps = {
-  springX: ReturnType<typeof useSpring>;
-  springY: ReturnType<typeof useSpring>;
-  type: "ship" | "plane";
-  label: string;
-  sub: string;
-  dx: number;
-  dy: number;
-  delay: number;
-  posStyle: React.CSSProperties;
-  flip?: boolean;
-  planeAngle?: number;
-};
+// ─── Tabs ───────────────────────────────────────
+const TABS = [
+  { id: "rates",    label: "RATES",           icon: Play,       bg: "bg-blue-600",  text: "text-white" },
+  { id: "tracking", label: "TRACKING",        icon: Navigation, bg: "bg-blue-100",  text: "text-blue-600" },
+  { id: "schedule", label: "SCHEDULES",       icon: LayoutGrid, bg: "bg-gray-800",  text: "text-white" },
+  { id: "quote",    label: "REQUEST A QUOTE", icon: ExternalLink,bg: "",            text: "text-gray-600", external: true },
+];
 
-function FloatingVehicle({
-  springX, springY, type, label, sub,
-  dx, dy, delay, posStyle, flip, planeAngle = -40,
-}: VehicleProps) {
-  const x = useTransform(springX, (v: number) => (v / 400) * dx);
-  const y = useTransform(springY, (v: number) => (v / 400) * dy);
-  const Icon = type === "ship" ? Ship : Plane;
-  const accent = type === "ship" ? "#60a5fa" : "#22d3ee";
-  const iconBg = type === "ship" ? "rgba(59,130,246,0.18)" : "rgba(34,211,238,0.18)";
-  const cardBg = "rgba(255,255,255,0.04)";
-  const cardBorder = type === "ship" ? "rgba(96,165,250,0.22)" : "rgba(34,211,238,0.22)";
-
-  return (
-    <motion.div
-      className="absolute hidden lg:block pointer-events-none"
-      style={posStyle}
-      initial={{ opacity: 0, scale: 0.65 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.6, delay }}
-    >
-      <motion.div
-        style={{
-          x, y, scaleX: flip ? -1 : 1,
-          background: cardBg,
-          border: `1px solid ${cardBorder}`,
-        }}
-        className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl backdrop-blur-md"
-      >
-        <div
-          className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: iconBg }}
-        >
-          <Icon
-            size={16}
-            style={{
-              color: accent,
-              transform: type === "plane" ? `rotate(${planeAngle}deg)` : undefined,
-            }}
-          />
-        </div>
-        <div style={{ transform: flip ? "scaleX(-1)" : undefined }}>
-          <p className="text-white text-xs font-semibold leading-none">{label}</p>
-          <p className="text-[10px] mt-0.5" style={{ color: `${accent}aa` }}>
-            {sub}
-          </p>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-// ─────────────────────────────────────────────────
-// Main
-// ─────────────────────────────────────────────────
+// ─── Main component ──────────────────────────────
 export default function HeroInteractive() {
   const ref = useRef<HTMLDivElement>(null);
+  const [activeTab, setActiveTab] = useState("rates");
+
   const rawX = useMotionValue(0);
   const rawY = useMotionValue(0);
   const springX = useSpring(rawX, SPRING);
   const springY = useSpring(rawY, SPRING);
-
-  const glowX = useTransform(springX, (v) => 50 + v * 0.025);
-  const glowY = useTransform(springY, (v) => 50 + v * 0.025);
-  const glowBg = useMotionTemplate`radial-gradient(900px circle at ${glowX}% ${glowY}%, rgba(29,78,216,0.13), transparent 60%)`;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = ref.current?.getBoundingClientRect();
@@ -275,149 +203,142 @@ export default function HeroInteractive() {
       ref={ref}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => { rawX.set(0); rawY.set(0); }}
-      className="relative min-h-screen bg-[#060c1a] overflow-hidden flex flex-col items-center justify-center"
+      className="relative bg-gradient-to-br from-blue-50 via-white to-blue-50/30 overflow-hidden"
     >
-      {/* Mouse glow */}
-      <motion.div className="absolute inset-0 pointer-events-none" style={{ background: glowBg }} />
+      <div className="max-w-7xl mx-auto px-6 lg:px-10">
+        <div className="flex items-center min-h-[88vh] gap-8">
 
-      {/* Bottom gradient fade into next section */}
-      <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-white to-transparent pointer-events-none z-20" />
+          {/* ── Left: text + form ── */}
+          <div className="flex-1 py-20 z-10">
+            <motion.h1
+              className="text-4xl md:text-5xl font-black text-[#0a1f3d] mb-10 leading-tight"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              최고의 화물 견적 찾기
+            </motion.h1>
 
-      {/* Stars */}
-      {STARS.map((s) => (
-        <motion.div
-          key={s.id}
-          className="absolute rounded-full bg-white pointer-events-none"
-          style={{ left: `${s.x}%`, top: `${s.y}%`, width: s.size, height: s.size, opacity: s.opacity }}
-          animate={{ opacity: [s.opacity, s.opacity * 0.2, s.opacity] }}
-          transition={{ duration: s.duration, repeat: Infinity, delay: s.delay }}
-        />
-      ))}
+            {/* Tabs */}
+            <motion.div
+              className="flex flex-wrap items-center gap-2 mb-5"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              {TABS.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => !tab.external && setActiveTab(tab.id)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold tracking-wide transition-all
+                      ${isActive && !tab.external
+                        ? `${tab.bg} ${tab.text} shadow-sm`
+                        : tab.external
+                        ? "text-gray-500 hover:text-gray-700"
+                        : "text-gray-400 hover:text-gray-600"
+                      }`}
+                  >
+                    <span
+                      className={`w-5 h-5 rounded-full flex items-center justify-center
+                        ${isActive && !tab.external ? tab.bg : "bg-gray-100"}`}
+                    >
+                      <Icon size={10} className={isActive && !tab.external ? tab.text : "text-gray-500"} />
+                    </span>
+                    {tab.label}
+                    {tab.external && <ExternalLink size={11} />}
+                  </button>
+                );
+              })}
+            </motion.div>
 
-      {/* Globe — absolute center */}
-      <div className="absolute left-1/2 top-[52%] -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-        <Globe3D springX={springX} springY={springY} />
+            {/* Search bar */}
+            <motion.div
+              className="bg-white rounded-2xl shadow-md border border-gray-100 flex items-center gap-1 px-3 py-2"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              {/* From */}
+              <div className="flex items-center gap-1.5 flex-1 min-w-0 px-2">
+                <MapPin size={14} className="text-gray-400 shrink-0" />
+                <input
+                  className="text-sm text-gray-500 bg-transparent outline-none w-full placeholder:text-gray-400"
+                  placeholder="City, terminal, ZIP code etc."
+                />
+              </div>
+
+              {/* Swap */}
+              <button className="shrink-0 p-1.5 rounded-lg hover:bg-gray-50 text-gray-400">
+                <ArrowLeftRight size={14} />
+              </button>
+
+              {/* To */}
+              <div className="flex items-center gap-1.5 flex-1 min-w-0 px-2">
+                <MapPin size={14} className="text-gray-400 shrink-0" />
+                <input
+                  className="text-sm text-gray-500 bg-transparent outline-none w-full placeholder:text-gray-400"
+                  placeholder="City, terminal, ZIP code etc."
+                />
+              </div>
+
+              <div className="w-px h-7 bg-gray-200 mx-1" />
+
+              {/* Date */}
+              <div className="flex items-center gap-1.5 shrink-0 px-2">
+                <Calendar size={13} className="text-gray-400" />
+                <span className="text-sm text-gray-600 whitespace-nowrap">24 Feb, 2026</span>
+                <button className="text-gray-300 hover:text-gray-500">
+                  <X size={13} />
+                </button>
+              </div>
+
+              <div className="w-px h-7 bg-gray-200 mx-1" />
+
+              {/* Container type */}
+              <div className="flex items-center gap-1.5 shrink-0 px-2">
+                <Package size={13} className="text-gray-400" />
+                <span className="text-sm text-gray-600 whitespace-nowrap">FCL, 20&#39; ST</span>
+                <button className="text-gray-300 hover:text-gray-500">
+                  <X size={13} />
+                </button>
+              </div>
+
+              {/* Search button */}
+              <button className="shrink-0 w-9 h-9 rounded-xl bg-[#0a1f3d] text-white flex items-center justify-center hover:bg-[#0d2a52] transition-colors ml-1">
+                <Search size={16} />
+              </button>
+            </motion.div>
+          </div>
+
+          {/* ── Right: Globe ── */}
+          <motion.div
+            className="hidden lg:block w-[52%] shrink-0 -mr-16"
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+          >
+            <GlobeSVG springX={springX} springY={springY} />
+          </motion.div>
+        </div>
       </div>
 
-      {/* Ships */}
-      <FloatingVehicle
-        springX={springX} springY={springY}
-        type="ship" label="컨테이너선" sub="부산 → 로테르담"
-        dx={22} dy={32} delay={1.0}
-        posStyle={{ left: "6%", top: "60%" }}
-      />
-      <FloatingVehicle
-        springX={springX} springY={springY}
-        type="ship" label="화물선" sub="상하이 → LA" flip
-        dx={42} dy={36} delay={1.2}
-        posStyle={{ right: "6%", top: "57%" }}
-      />
-
-      {/* Planes */}
-      <FloatingVehicle
-        springX={springX} springY={springY}
-        type="plane" label="항공화물" sub="인천 → 프랑크푸르트"
-        dx={-30} dy={18} delay={1.1} planeAngle={-45}
-        posStyle={{ left: "7%", top: "26%" }}
-      />
-      <FloatingVehicle
-        springX={springX} springY={springY}
-        type="plane" label="특급배송" sub="홍콩 → 뉴욕" flip
-        dx={48} dy={22} delay={1.3} planeAngle={-45}
-        posStyle={{ right: "7%", top: "28%" }}
-      />
-
-      {/* Text — centered, sits above globe visually */}
-      <div className="relative z-10 text-center max-w-3xl mx-auto px-6" style={{ marginBottom: "8vh" }}>
-        <motion.div
-          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-sm font-medium mb-7"
-          style={{
-            background: "rgba(59,130,246,0.12)",
-            border: "1px solid rgba(96,165,250,0.25)",
-            color: "#93c5fd",
-          }}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-          차세대 무역 플랫폼
-        </motion.div>
-
-        <motion.h1
-          className="text-5xl lg:text-6xl xl:text-7xl font-extrabold tracking-tight text-white mb-6 leading-tight"
-          initial={{ opacity: 0, y: 22 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, delay: 0.1 }}
-        >
-          글로벌 무역,
-          <br />
-          <span
-            style={{
-              background: "linear-gradient(90deg, #60a5fa, #22d3ee)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            더 쉽고 단순하게.
-          </span>
-        </motion.h1>
-
-        <motion.p
-          className="text-lg text-blue-100/55 mb-10 max-w-xl mx-auto leading-relaxed"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          국제 무역의 장벽을 낮추는 스마트 디지털 물류 시스템.
-          <br className="hidden sm:block" />
-          신뢰할 수 있는 인터페이스를 통해 전 세계 시장을 연결합니다.
-        </motion.p>
-
-        <motion.div
-          className="flex flex-col sm:flex-row gap-4 justify-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <a
-            href="#"
-            className="inline-flex items-center justify-center px-8 py-3.5 text-base font-semibold rounded-full text-white transition-all hover:-translate-y-0.5"
-            style={{
-              background: "linear-gradient(135deg, #2563eb, #0ea5e9)",
-              boxShadow: "0 8px 32px rgba(37,99,235,0.35)",
-            }}
-          >
-            시작하기
-          </a>
-          <a
-            href="#"
-            className="inline-flex items-center justify-center px-8 py-3.5 text-base font-semibold rounded-full transition-all hover:bg-white/8"
-            style={{
-              color: "rgba(255,255,255,0.75)",
-              border: "1px solid rgba(255,255,255,0.12)",
-            }}
-          >
-            <Play size={16} className="mr-2 fill-current" />
-            데모 보기
-          </a>
-        </motion.div>
-      </div>
-
-      {/* Scroll indicator */}
+      {/* Special offers bar */}
       <motion.div
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1"
+        className="border-t border-gray-100 bg-white/60 backdrop-blur-sm px-6 lg:px-10 py-4 flex items-center gap-5"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1.8 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
       >
-        <span className="text-[11px] text-white/30 font-medium tracking-widest uppercase">scroll</span>
-        <motion.div
-          animate={{ y: [0, 5, 0] }}
-          transition={{ duration: 1.6, repeat: Infinity }}
-        >
-          <ChevronDown size={16} className="text-white/25" />
-        </motion.div>
+        <span className="font-bold text-gray-900 text-sm">Special offers</span>
+        <button className="flex items-center gap-2 border border-gray-200 rounded-full px-4 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors">
+          IMPORT TO <span>🇰🇷</span>
+        </button>
+        <button className="flex items-center gap-2 text-blue-600 border-b border-blue-500 text-xs font-bold pb-0.5 hover:text-blue-700 transition-colors">
+          EXPORT FROM <span>🇰🇷</span>
+        </button>
       </motion.div>
     </section>
   );
