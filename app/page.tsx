@@ -2,7 +2,9 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "motion/react";
+import { useSession, signOut } from "next-auth/react";
 import {
   Rocket,
   Truck,
@@ -18,6 +20,8 @@ import {
   Globe2,
   Share2,
   Mail,
+  LogOut,
+  User,
 } from "lucide-react";
 import HeroInteractive from "./components/HeroInteractive";
 
@@ -27,6 +31,60 @@ const fadeUp = (delay = 0) => ({
   viewport: { once: true, margin: "-60px" },
   transition: { duration: 0.5, delay },
 });
+
+function NavAuth() {
+  const { data: session, status } = useSession();
+
+  if (status === "loading") {
+    return <div className="w-20 h-8 bg-gray-100 rounded-full animate-pulse" />;
+  }
+
+  if (session?.user) {
+    return (
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          {session.user.image ? (
+            <Image
+              src={session.user.image}
+              alt={session.user.name ?? ""}
+              width={32}
+              height={32}
+              className="rounded-full"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+              <User size={16} />
+            </div>
+          )}
+          <span className="text-sm font-medium text-gray-700 max-w-[100px] truncate">
+            {session.user.name ?? session.user.email}
+          </span>
+        </div>
+        <button
+          onClick={() => signOut({ callbackUrl: "/" })}
+          className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+        >
+          <LogOut size={15} />
+          <span>로그아웃</span>
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-4">
+      <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+        로그인
+      </Link>
+      <Link
+        href="/register"
+        className="inline-flex items-center justify-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-full text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-all hover:shadow hover:-translate-y-0.5"
+      >
+        시작하기
+      </Link>
+    </div>
+  );
+}
 
 export default function Home() {
   return (
@@ -60,16 +118,8 @@ export default function Home() {
               </Link>
             </div>
 
-            <div className="hidden md:flex items-center space-x-4">
-              <a href="#" className="text-sm font-medium text-gray-600 hover:text-blue-600">
-                로그인
-              </a>
-              <a
-                href="#"
-                className="inline-flex items-center justify-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-full text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-all hover:shadow hover:-translate-y-0.5"
-              >
-                시작하기
-              </a>
+            <div className="hidden md:flex items-center">
+              <NavAuth />
             </div>
           </div>
         </div>
