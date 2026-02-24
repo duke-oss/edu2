@@ -5,7 +5,6 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import {
   Rocket,
-  Play,
   Truck,
   Globe,
   Handshake,
@@ -20,6 +19,7 @@ import {
   Share2,
   Mail,
 } from "lucide-react";
+import HeroInteractive from "./components/HeroInteractive";
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 24 },
@@ -76,87 +76,7 @@ export default function Home() {
       </nav>
 
       <main>
-        {/* Hero Section */}
-        <section className="relative overflow-hidden pt-20 pb-24 lg:pt-32 lg:pb-32">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div className="lg:grid lg:grid-cols-12 lg:gap-16 items-center">
-              <div className="lg:col-span-6 text-center lg:text-left">
-                <motion.div
-                  className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-sm font-medium mb-6"
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-                  차세대 무역 플랫폼
-                </motion.div>
-                <motion.h1
-                  className="text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 mb-6 leading-tight"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                >
-                  글로벌 무역, <br />
-                  <span className="text-blue-600">더 쉽고 <br className="lg:hidden" />단순하게.</span>
-                </motion.h1>
-                <motion.p
-                  className="mt-4 text-lg text-gray-600 mb-10 max-w-2xl mx-auto lg:mx-0"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                >
-                  국제 무역의 장벽을 낮추는 스마트 디지털 물류 시스템. 신뢰할 수 있는 인터페이스를 통해 전 세계 시장을 연결합니다.
-                </motion.p>
-                <motion.div
-                  className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.3 }}
-                >
-                  <a
-                    href="#"
-                    className="inline-flex items-center justify-center px-8 py-3.5 border border-transparent text-base font-medium rounded-full text-white bg-blue-600 hover:bg-blue-700 shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5"
-                  >
-                    시작하기
-                  </a>
-                  <a
-                    href="#"
-                    className="inline-flex items-center justify-center px-8 py-3.5 border border-gray-200 text-base font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50 shadow-sm transition-all hover:border-gray-300"
-                  >
-                    <Play size={18} className="mr-2 text-gray-500 fill-current" />
-                    데모 보기
-                  </a>
-                </motion.div>
-              </div>
-
-              <motion.div
-                className="lg:col-span-6 mt-16 lg:mt-0 relative"
-                initial={{ opacity: 0, x: 40 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-              >
-                <div className="relative rounded-2xl bg-gray-900 shadow-2xl overflow-hidden aspect-[4/3] hover:scale-[1.02] transition-transform duration-500">
-                  <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900"></div>
-                  <div className="absolute bottom-0 left-0 right-0 h-64 flex items-end px-8 pb-8 space-x-2 opacity-80">
-                    {[40, 60, 45, 70, 50, 85, 60, 95, 75, 110, 85, 120, 95, 140, 110, 160].map((h, i) => (
-                      <motion.div
-                        key={i}
-                        className="flex-1 bg-gradient-to-t from-cyan-500 to-blue-500 rounded-t-sm"
-                        initial={{ height: 0 }}
-                        animate={{ height: `${h}px` }}
-                        transition={{ duration: 0.6, delay: 0.4 + i * 0.03 }}
-                      />
-                    ))}
-                  </div>
-                  <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-                    <path d="M0,200 Q100,250 200,150 T400,100 T600,200 T800,50 L800,0 L0,0 Z" fill="rgba(255,255,255,0.03)" />
-                    <polyline points="0,200 50,220 100,180 150,230 200,160 250,210 300,140 350,240 400,120 450,190 500,150 550,260 600,170 650,210 700,90 750,180 800,50" fill="none" stroke="cyan" strokeWidth="2" className="opacity-70" />
-                  </svg>
-                </div>
-              </motion.div>
-            </div>
-          </div>
-        </section>
+        <HeroInteractive />
 
         {/* Stats Section */}
         <section className="py-12 bg-gray-50/50">
