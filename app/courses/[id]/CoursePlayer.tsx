@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "motion/react";
 import { Course } from "@/app/data/courses";
 import { Play, Clock, ChevronRight, Lock, CheckCircle, Rocket, BookOpen } from "lucide-react";
 
@@ -37,74 +38,98 @@ export default function CoursePlayer({ course }: { course: Course }) {
         {/* Video Area */}
         <div className="flex-1 min-w-0">
           {/* Video Player */}
-          <div className="w-full bg-black aspect-video">
-            {activeLesson.videoId ? (
-              <iframe
-                key={activeLesson.id}
-                className="w-full h-full"
-                src={`https://www.youtube.com/embed/${activeLesson.videoId}?autoplay=1`}
-                title={activeLesson.title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-gray-900">
-                <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center">
-                  <Play size={28} className="text-gray-500 ml-1" />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeLesson.id + "-video"}
+              className="w-full bg-black aspect-video"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+            >
+              {activeLesson.videoId ? (
+                <iframe
+                  className="w-full h-full"
+                  src={`https://www.youtube.com/embed/${activeLesson.videoId}?autoplay=1`}
+                  title={activeLesson.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-gray-900">
+                  <motion.div
+                    className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center"
+                    initial={{ scale: 0.8 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Play size={28} className="text-gray-500 ml-1" />
+                  </motion.div>
+                  <p className="text-gray-400 text-sm">강의 준비 중입니다</p>
                 </div>
-                <p className="text-gray-400 text-sm">강의 준비 중입니다</p>
-              </div>
-            )}
-          </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
 
           {/* Lesson Info */}
-          <div className="p-6 lg:p-8 border-t border-gray-800">
-            <div className="max-w-3xl">
-              <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
-                <BookOpen size={13} />
-                <span>{course.category}</span>
-                <span>·</span>
-                <Clock size={13} />
-                <span>{activeLesson.duration}</span>
-              </div>
-              <h1 className="text-xl sm:text-2xl font-bold text-white mb-3">
-                {activeLesson.title}
-              </h1>
-              {activeLesson.description && (
-                <p className="text-gray-400 leading-relaxed">
-                  {activeLesson.description}
-                </p>
-              )}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeLesson.id + "-info"}
+              className="p-6 lg:p-8 border-t border-gray-800"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+            >
+              <div className="max-w-3xl">
+                <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
+                  <BookOpen size={13} />
+                  <span>{course.category}</span>
+                  <span>·</span>
+                  <Clock size={13} />
+                  <span>{activeLesson.duration}</span>
+                </div>
+                <h1 className="text-xl sm:text-2xl font-bold text-white mb-3">
+                  {activeLesson.title}
+                </h1>
+                {activeLesson.description && (
+                  <p className="text-gray-400 leading-relaxed">
+                    {activeLesson.description}
+                  </p>
+                )}
 
-              {/* Prev/Next */}
-              <div className="flex items-center gap-3 mt-6">
-                {course.lessons.indexOf(activeLesson) > 0 && (
-                  <button
-                    onClick={() =>
-                      setActiveLesson(
-                        course.lessons[course.lessons.indexOf(activeLesson) - 1]
-                      )
-                    }
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-gray-800 hover:bg-gray-700 text-sm transition-colors"
-                  >
-                    이전 강의
-                  </button>
-                )}
-                {course.lessons.indexOf(activeLesson) < course.lessons.length - 1 && (
-                  <button
-                    onClick={() =>
-                      setActiveLesson(
-                        course.lessons[course.lessons.indexOf(activeLesson) + 1]
-                      )
-                    }
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-blue-600 hover:bg-blue-500 text-sm font-medium transition-colors"
-                  >
-                    다음 강의 <ChevronRight size={14} />
-                  </button>
-                )}
+                {/* Prev/Next */}
+                <div className="flex items-center gap-3 mt-6">
+                  {course.lessons.indexOf(activeLesson) > 0 && (
+                    <motion.button
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() =>
+                        setActiveLesson(
+                          course.lessons[course.lessons.indexOf(activeLesson) - 1]
+                        )
+                      }
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-gray-800 hover:bg-gray-700 text-sm transition-colors"
+                    >
+                      이전 강의
+                    </motion.button>
+                  )}
+                  {course.lessons.indexOf(activeLesson) < course.lessons.length - 1 && (
+                    <motion.button
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() =>
+                        setActiveLesson(
+                          course.lessons[course.lessons.indexOf(activeLesson) + 1]
+                        )
+                      }
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-blue-600 hover:bg-blue-500 text-sm font-medium transition-colors"
+                    >
+                      다음 강의 <ChevronRight size={14} />
+                    </motion.button>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         {/* Sidebar - Curriculum */}
@@ -118,19 +143,26 @@ export default function CoursePlayer({ course }: { course: Course }) {
             {course.lessons.map((lesson, index) => {
               const isActive = lesson.id === activeLesson.id;
               return (
-                <button
+                <motion.button
                   key={lesson.id}
+                  initial={{ opacity: 0, x: 16 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.04 }}
+                  whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                   onClick={() => setActiveLesson(lesson)}
-                  className={`w-full text-left px-4 py-3.5 flex items-start gap-3 hover:bg-gray-800/60 transition-colors border-b border-gray-800/50 ${
+                  className={`w-full text-left px-4 py-3.5 flex items-start gap-3 transition-colors border-b border-gray-800/50 ${
                     isActive ? "bg-gray-800 border-l-2 border-l-blue-500" : ""
                   }`}
                 >
                   {/* Icon */}
                   <div className="shrink-0 mt-0.5">
                     {isActive ? (
-                      <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center">
+                      <motion.div
+                        layoutId="active-indicator"
+                        className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center"
+                      >
                         <Play size={10} className="ml-0.5 fill-white text-white" />
-                      </div>
+                      </motion.div>
                     ) : lesson.videoId ? (
                       <div className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center">
                         <CheckCircle size={13} className="text-green-400" />
@@ -153,11 +185,10 @@ export default function CoursePlayer({ course }: { course: Course }) {
                     </p>
                   </div>
 
-                  {/* Lock if no video */}
                   {!lesson.videoId && !isActive && (
                     <Lock size={12} className="text-gray-600 shrink-0 mt-1" />
                   )}
-                </button>
+                </motion.button>
               );
             })}
           </div>
