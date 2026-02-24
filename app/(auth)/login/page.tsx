@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Mail, Lock, AlertCircle, Loader2 } from "lucide-react";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const callbackUrl = params.get("callbackUrl") ?? "/";
@@ -46,7 +46,6 @@ export default function LoginPage() {
           <p className="text-gray-500 text-sm">셀러노트에 오신 것을 환영합니다</p>
         </div>
 
-        {/* Google login */}
         <button
           onClick={() => signIn("google", { callbackUrl })}
           className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors mb-6"
@@ -60,7 +59,6 @@ export default function LoginPage() {
           Google로 계속하기
         </button>
 
-        {/* Divider */}
         <div className="relative mb-6">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-200" />
@@ -70,7 +68,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Email/password form */}
         <form onSubmit={handleCredentials} className="space-y-4">
           {error && (
             <div className="flex items-center gap-2 p-3 bg-red-50 text-red-600 rounded-xl text-sm">
@@ -121,5 +118,13 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }
