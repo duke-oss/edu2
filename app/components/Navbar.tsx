@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Rocket, LogOut, User } from "lucide-react";
 
@@ -63,6 +64,11 @@ function NavAuth() {
 }
 
 export default function Navbar() {
+  const pathname = usePathname();
+
+  // 강의 플레이어 페이지에서는 숨김 (/courses/[id])
+  if (/^\/courses\/.+/.test(pathname)) return null;
+
   return (
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

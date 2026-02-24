@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion } from "motion/react";
 import { courses } from "@/app/data/courses";
-import { BookOpen, Clock, User, ChevronRight, Rocket } from "lucide-react";
+import { BookOpen, Clock, User, ChevronRight } from "lucide-react";
 
 const levelColor: Record<string, string> = {
   입문: "bg-green-50 text-green-700",
@@ -15,28 +15,6 @@ const levelColor: Record<string, string> = {
 export default function CoursesPage() {
   return (
     <div className="min-h-screen bg-white">
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
-                <Rocket size={16} fill="currentColor" />
-              </div>
-              <span className="font-bold text-lg tracking-tight">Sellernote</span>
-            </Link>
-            <div className="flex items-center gap-6">
-              <Link href="/" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
-                홈
-              </Link>
-              <Link href="/courses" className="text-sm font-semibold text-blue-600">
-                강의
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       {/* Hero */}
       <section className="bg-gray-50 border-b border-gray-100 py-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
