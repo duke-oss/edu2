@@ -1,17 +1,13 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { Lock, PenLine, ChevronRight, Loader2 } from "lucide-react";
+import { auth } from "@/auth";
+import { createClient } from "@supabase/supabase-js";
+import { Lock, PenLine, ChevronRight } from "lucide-react";
 
-interface Inquiry {
-  id: string;
-  title: string;
-  category: string;
-  created_at: string;
-  users: { name: string | null; email: string | null } | null;
+function getDb() {
+  return createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 }
 
 function maskName(name: string | null, email: string | null) {
@@ -20,18 +16,20 @@ function maskName(name: string | null, email: string | null) {
   return display[0] + "*".repeat(display.length - 1);
 }
 
-export default function InquiryListPage() {
-  const { data: session } = useSession();
-  const router = useRouter();
-  const [list, setList] = useState<Inquiry[]>([]);
-  const [loading, setLoading] = useState(true);
+export const dynamic = "force-dynamic";
 
-  useEffect(() => {
-    fetch("/api/inquiry")
-      .then((r) => r.json())
-      .then((data) => setList(Array.isArray(data) ? data : []))
-      .finally(() => setLoading(false));
-  }, []);
+export default async function InquiryListPage() {
+  const [session, db] = await Promise.all([
+    auth(),
+    Promise.resolve(getDb()),
+  ]);
+
+  const { data: list } = await db
+    .from("inquiries")
+    .select("id, title, category, created_at, users(name, email)")
+    .order("created_at", { ascending: false });
+
+  const items = list ?? [];
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
@@ -62,20 +60,16 @@ export default function InquiryListPage() {
           <span className="w-24 text-center">날짜</span>
         </div>
 
-        {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <Loader2 size={24} className="animate-spin text-gray-400" />
-          </div>
-        ) : list.length === 0 ? (
+        {items.length === 0 ? (
           <div className="text-center py-20 text-gray-400 text-sm">
             아직 문의가 없습니다
           </div>
         ) : (
-          list.map((item, i) => (
-            <button
+          items.map((item, i) => (
+            <Link
               key={item.id}
-              onClick={() => router.push(`/inquiry/${item.id}`)}
-              className={`w-full grid grid-cols-[1fr_auto_auto_auto] gap-4 px-6 py-4 text-left hover:bg-blue-50/50 transition-colors ${
+              href={`/inquiry/${item.id}`}
+              className={`w-full grid grid-cols-[1fr_auto_auto_auto] gap-4 px-6 py-4 hover:bg-blue-50/50 transition-colors ${
                 i !== 0 ? "border-t border-gray-100" : ""
               }`}
             >
@@ -88,12 +82,17 @@ export default function InquiryListPage() {
                 {item.category}
               </span>
               <span className="w-20 text-center text-xs text-gray-500 self-center">
-                {maskName(item.users?.name ?? null, item.users?.email ?? null)}
+                {maskName(
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  (item.users as any)?.name ?? null,
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  (item.users as any)?.email ?? null
+                )}
               </span>
               <span className="w-24 text-center text-xs text-gray-400 self-center">
                 {new Date(item.created_at).toLocaleDateString("ko-KR")}
               </span>
-            </button>
+            </Link>
           ))
         )}
       </div>
