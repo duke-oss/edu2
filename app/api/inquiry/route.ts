@@ -3,13 +3,10 @@ import bcrypt from "bcryptjs";
 import { createClient } from "@supabase/supabase-js";
 import { auth } from "@/auth";
 
-function getDb() {
-  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
-}
+const db = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
 // 목록 조회
 export async function GET() {
-  const db = getDb();
   const { data, error } = await db
     .from("inquiries")
     .select("id, title, category, created_at, users(name, email)")
@@ -31,11 +28,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "모든 항목을 입력해주세요." }, { status: 400 });
   }
 
-  const db = getDb();
   const { error } = await db.from("inquiries").insert({
     user_id: session.user.id,
     title,
-    password_hash: await bcrypt.hash(password, 10),
+    password_hash: await bcrypt.hash(password, 6),
     category,
     content,
   });

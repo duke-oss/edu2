@@ -3,12 +3,11 @@ import { auth } from "@/auth";
 import { createClient } from "@supabase/supabase-js";
 import { Lock, PenLine, ChevronRight } from "lucide-react";
 
-function getDb() {
-  return createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
+// 모듈 레벨로 올려 웜 컨테이너에서 재사용
+const db = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 function maskName(name: string | null, email: string | null) {
   const display = name || email?.split("@")[0] || "익명";
@@ -19,9 +18,8 @@ function maskName(name: string | null, email: string | null) {
 export const dynamic = "force-dynamic";
 
 export default async function InquiryListPage() {
-  const [session, db] = await Promise.all([
+  const [session] = await Promise.all([
     auth(),
-    Promise.resolve(getDb()),
   ]);
 
   const { data: list } = await db
