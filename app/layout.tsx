@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Providers from "./components/Providers";
+import Navbar from "./components/Navbar";
 
 export const metadata: Metadata = {
   title: "Sellernote - 글로벌 무역, 더 쉽고 단순하게",
@@ -21,7 +22,10 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans antialiased text-gray-900 bg-white">
-        <Providers>{children}</Providers>
+        <Providers>
+          <Navbar />
+          {children}
+        </Providers>
       </body>
     </html>
   );
