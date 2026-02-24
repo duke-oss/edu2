@@ -47,10 +47,7 @@ function NavAuth() {
 
   return (
     <div className="flex items-center gap-4">
-      <Link
-        href="/login"
-        className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors"
-      >
+      <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
         로그인
       </Link>
       <Link
@@ -63,10 +60,15 @@ function NavAuth() {
   );
 }
 
+const NAV_ITEMS = [
+  { label: "회사소개", href: "/" },
+  { label: "문의하기", href: "/inquiry" },
+  { label: "강의", href: "/courses" },
+];
+
 export default function Navbar() {
   const pathname = usePathname();
 
-  // 강의 플레이어 페이지에서는 숨김 (/courses/[id])
   if (/^\/courses\/.+/.test(pathname)) return null;
 
   return (
@@ -83,21 +85,19 @@ export default function Navbar() {
 
           {/* Menu */}
           <div className="hidden md:flex space-x-10">
-            {["회사 소개", "생태계", "통계", "우리의 여정"].map((item) => (
-              <a
-                key={item}
-                href={`/#${item}`}
-                className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors"
+            {NAV_ITEMS.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`text-sm font-medium transition-colors ${
+                  pathname === item.href
+                    ? "text-blue-600"
+                    : "text-gray-600 hover:text-blue-600"
+                }`}
               >
-                {item}
-              </a>
+                {item.label}
+              </Link>
             ))}
-            <Link
-              href="/courses"
-              className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
-            >
-              강의
-            </Link>
           </div>
 
           {/* Auth */}
