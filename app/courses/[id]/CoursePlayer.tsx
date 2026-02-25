@@ -10,33 +10,33 @@ export default function CoursePlayer({ course }: { course: Course }) {
   const [activeLesson, setActiveLesson] = useState(course.lessons[0]);
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div data-theme="dark" className="min-h-screen bg-base-100 text-base-content">
       {/* Top Nav */}
-      <nav className="bg-gray-900 border-b border-gray-800 px-4 sm:px-6 h-14 flex items-center justify-between sticky top-0 z-50">
-        <div className="flex items-center gap-3 min-w-0">
+      <div className="navbar bg-base-200 border-b border-base-300 px-4 sm:px-6 h-14 sticky top-0 z-50">
+        <div className="navbar-start min-w-0 gap-2">
           <Link href="/" className="flex items-center gap-1.5 shrink-0">
-            <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-primary-content">
               <Rocket size={13} fill="currentColor" />
             </div>
             <span className="font-bold text-sm hidden sm:block">Sellernote</span>
           </Link>
-          <ChevronRight size={14} className="text-gray-600 shrink-0" />
-          <Link href="/courses" className="text-sm text-gray-400 hover:text-white transition-colors shrink-0">
+          <ChevronRight size={14} className="text-base-content/30 shrink-0" />
+          <Link href="/courses" className="text-sm text-base-content/50 hover:text-base-content transition-colors shrink-0">
             강의 목록
           </Link>
-          <ChevronRight size={14} className="text-gray-600 shrink-0" />
-          <Link href={`/courses/${course.id}`} className="text-sm text-gray-400 hover:text-white transition-colors truncate max-w-[160px]">
+          <ChevronRight size={14} className="text-base-content/30 shrink-0" />
+          <Link href={`/courses/${course.id}`} className="text-sm text-base-content/50 hover:text-base-content transition-colors truncate max-w-[160px]">
             {course.title}
           </Link>
-          <ChevronRight size={14} className="text-gray-600 shrink-0" />
-          <span className="text-sm text-white font-medium shrink-0">수강 중</span>
+          <ChevronRight size={14} className="text-base-content/30 shrink-0" />
+          <span className="text-sm font-medium shrink-0">수강 중</span>
         </div>
-        <div className="flex items-center gap-2 shrink-0 ml-4">
-          <span className="text-xs text-gray-400 hidden sm:block">
+        <div className="navbar-end shrink-0">
+          <span className="text-xs text-base-content/40 hidden sm:block">
             {course.lessons.length}개 강의 · {course.totalDuration}
           </span>
         </div>
-      </nav>
+      </div>
 
       <div className="flex flex-col lg:flex-row min-h-[calc(100vh-56px)]">
         {/* Video Area */}
@@ -60,16 +60,16 @@ export default function CoursePlayer({ course }: { course: Course }) {
                   allowFullScreen
                 />
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-gray-900">
+                <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-base-300">
                   <motion.div
-                    className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center"
+                    className="w-16 h-16 rounded-full bg-base-200 flex items-center justify-center"
                     initial={{ scale: 0.8 }}
                     animate={{ scale: 1 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <Play size={28} className="text-gray-500 ml-1" />
+                    <Play size={28} className="text-base-content/30 ml-1" />
                   </motion.div>
-                  <p className="text-gray-400 text-sm">강의 준비 중입니다</p>
+                  <p className="text-base-content/50 text-sm">강의 준비 중입니다</p>
                 </div>
               )}
             </motion.div>
@@ -79,25 +79,25 @@ export default function CoursePlayer({ course }: { course: Course }) {
           <AnimatePresence mode="wait">
             <motion.div
               key={activeLesson.id + "-info"}
-              className="p-6 lg:p-8 border-t border-gray-800"
+              className="p-6 lg:p-8 border-t border-base-300"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.25 }}
             >
               <div className="max-w-3xl">
-                <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
+                <div className="flex items-center gap-2 text-xs text-base-content/50 mb-2">
                   <BookOpen size={13} />
                   <span>{course.category}</span>
                   <span>·</span>
                   <Clock size={13} />
                   <span>{activeLesson.duration}</span>
                 </div>
-                <h1 className="text-xl sm:text-2xl font-bold text-white mb-3">
+                <h1 className="text-xl sm:text-2xl font-bold mb-3">
                   {activeLesson.title}
                 </h1>
                 {activeLesson.description && (
-                  <p className="text-gray-400 leading-relaxed">
+                  <p className="text-base-content/60 leading-relaxed text-sm">
                     {activeLesson.description}
                   </p>
                 )}
@@ -112,7 +112,7 @@ export default function CoursePlayer({ course }: { course: Course }) {
                           course.lessons[course.lessons.indexOf(activeLesson) - 1]
                         )
                       }
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-gray-800 hover:bg-gray-700 text-sm transition-colors"
+                      className="btn btn-sm btn-ghost"
                     >
                       이전 강의
                     </motion.button>
@@ -125,7 +125,7 @@ export default function CoursePlayer({ course }: { course: Course }) {
                           course.lessons[course.lessons.indexOf(activeLesson) + 1]
                         )
                       }
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-blue-600 hover:bg-blue-500 text-sm font-medium transition-colors"
+                      className="btn btn-sm btn-primary gap-1"
                     >
                       다음 강의 <ChevronRight size={14} />
                     </motion.button>
@@ -137,10 +137,10 @@ export default function CoursePlayer({ course }: { course: Course }) {
         </div>
 
         {/* Sidebar - Curriculum */}
-        <aside className="w-full lg:w-80 xl:w-96 bg-gray-900 border-t lg:border-t-0 lg:border-l border-gray-800 flex flex-col">
-          <div className="p-4 border-b border-gray-800">
-            <h2 className="font-bold text-sm text-white">커리큘럼</h2>
-            <p className="text-xs text-gray-400 mt-0.5">총 {course.lessons.length}강</p>
+        <aside className="w-full lg:w-80 xl:w-96 bg-base-200 border-t lg:border-t-0 lg:border-l border-base-300 flex flex-col">
+          <div className="p-4 border-b border-base-300">
+            <h2 className="font-bold text-sm">커리큘럼</h2>
+            <p className="text-xs text-base-content/50 mt-0.5">총 {course.lessons.length}강</p>
           </div>
 
           <div className="overflow-y-auto flex-1">
@@ -152,10 +152,9 @@ export default function CoursePlayer({ course }: { course: Course }) {
                   initial={{ opacity: 0, x: 16 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.04 }}
-                  whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                   onClick={() => setActiveLesson(lesson)}
-                  className={`w-full text-left px-4 py-3.5 flex items-start gap-3 transition-colors border-b border-gray-800/50 ${
-                    isActive ? "bg-gray-800 border-l-2 border-l-blue-500" : ""
+                  className={`w-full text-left px-4 py-3.5 flex items-start gap-3 border-b border-base-300/50 transition-colors hover:bg-base-300 ${
+                    isActive ? "bg-base-300 border-l-2 border-l-primary" : ""
                   }`}
                 >
                   {/* Icon */}
@@ -163,16 +162,16 @@ export default function CoursePlayer({ course }: { course: Course }) {
                     {isActive ? (
                       <motion.div
                         layoutId="active-indicator"
-                        className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center"
+                        className="w-6 h-6 rounded-full bg-primary flex items-center justify-center"
                       >
                         <Play size={10} className="ml-0.5 fill-white text-white" />
                       </motion.div>
                     ) : lesson.videoId ? (
-                      <div className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center">
-                        <CheckCircle size={13} className="text-green-400" />
+                      <div className="w-6 h-6 rounded-full bg-base-300 flex items-center justify-center">
+                        <CheckCircle size={13} className="text-success" />
                       </div>
                     ) : (
-                      <div className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-gray-500 text-xs font-bold">
+                      <div className="w-6 h-6 rounded-full bg-base-100 flex items-center justify-center text-base-content/40 text-xs font-bold">
                         {index + 1}
                       </div>
                     )}
@@ -180,17 +179,17 @@ export default function CoursePlayer({ course }: { course: Course }) {
 
                   {/* Text */}
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium leading-snug ${isActive ? "text-white" : "text-gray-300"}`}>
+                    <p className={`text-sm font-medium leading-snug ${isActive ? "" : "text-base-content/70"}`}>
                       {lesson.title}
                     </p>
-                    <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                    <p className="text-xs text-base-content/40 mt-0.5 flex items-center gap-1">
                       <Clock size={11} />
                       {lesson.duration}
                     </p>
                   </div>
 
                   {!lesson.videoId && !isActive && (
-                    <Lock size={12} className="text-gray-600 shrink-0 mt-1" />
+                    <Lock size={12} className="text-base-content/30 shrink-0 mt-1" />
                   )}
                 </motion.button>
               );

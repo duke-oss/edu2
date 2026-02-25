@@ -33,17 +33,16 @@ const JOURNEY = [
 
 export default function AboutPage() {
   return (
-    <div className="bg-white text-gray-900">
+    <div className="bg-base-100">
 
-      {/* ── Section 1: Hero ── */}
+      {/* ── Hero ── */}
       <section className="relative min-h-[88vh] flex items-center bg-gradient-to-br from-gray-950 via-blue-950 to-gray-900 overflow-hidden">
-        {/* bg decoration */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(59,130,246,0.18),transparent)]" />
         <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-3xl" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28">
           <motion.p
-            className="text-blue-400 text-sm font-semibold tracking-widest uppercase mb-6"
+            className="text-primary/80 text-sm font-semibold tracking-widest uppercase mb-6"
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
           >
             Sellernote
@@ -53,7 +52,7 @@ export default function AboutPage() {
             initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
           >
             무역을<br />쉽게 만들고<br />
-            <span className="text-blue-400">있습니다</span>
+            <span className="text-primary">있습니다</span>
           </motion.h1>
           <motion.p
             className="text-gray-300 text-lg md:text-xl leading-relaxed max-w-xl mb-12"
@@ -66,24 +65,18 @@ export default function AboutPage() {
             className="flex flex-col sm:flex-row gap-4"
             initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
           >
-            <Link
-              href="/register"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-full transition-all hover:shadow-lg hover:shadow-blue-500/20 hover:-translate-y-0.5"
-            >
+            <Link href="/register" className="btn btn-primary btn-lg rounded-full gap-2 shadow-lg shadow-primary/20">
               무료로 시작하기 <ArrowRight size={16} />
             </Link>
-            <Link
-              href="/courses"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 border border-white/20 text-white font-semibold rounded-full hover:bg-white/10 transition-all"
-            >
+            <Link href="/courses" className="btn btn-lg rounded-full border border-white/20 text-white bg-transparent hover:bg-white/10 gap-2">
               강의 둘러보기
             </Link>
           </motion.div>
         </div>
       </section>
 
-      {/* ── Section 3: Stats ── */}
-      <section className="py-16 bg-blue-600">
+      {/* ── Stats ── */}
+      <section className="py-16 bg-primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
@@ -92,83 +85,87 @@ export default function AboutPage() {
               { icon: Star, value: "98%", label: "수강생 만족도" },
               { icon: Package, value: "50+", label: "실무 강의 콘텐츠" },
             ].map((s, i) => (
-              <motion.div key={i} {...fadeUp(i * 0.08)} className="text-center text-white">
-                <s.icon size={24} className="mx-auto mb-3 opacity-80" />
+              <motion.div key={i} {...fadeUp(i * 0.08)} className="text-center text-primary-content">
+                <s.icon size={24} className="mx-auto mb-3 opacity-70" />
                 <p className="text-3xl md:text-4xl font-bold mb-1">{s.value}</p>
-                <p className="text-blue-100 text-sm">{s.label}</p>
+                <p className="text-primary-content/70 text-sm">{s.label}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Section 2: Who We Are ── */}
-      <section className="py-24 bg-white" id="about">
+      {/* ── Who We Are ── */}
+      <section className="py-24 bg-base-100" id="about">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div {...fadeUp()} className="mb-16">
-            <p className="text-blue-600 font-semibold text-sm tracking-widest uppercase mb-3">Who We Are</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 max-w-2xl">
+            <p className="text-primary font-semibold text-sm tracking-widest uppercase mb-3">Who We Are</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6 max-w-2xl">
               우리는 무역의 문턱을<br />낮추는 사람들입니다
             </h2>
-            <p className="text-gray-600 text-lg max-w-2xl leading-relaxed">
+            <p className="text-base-content/60 text-lg max-w-2xl leading-relaxed">
               왜 수입무역에 집중할까요? 수출 시장은 대기업 중심입니다.<br />
               삼성, LG, 현대 같은 대기업들이 이미 탄탄한 인프라와 전문 인력을 갖추고 있죠.
             </p>
           </motion.div>
 
-          {/* 수출 vs 수입 비교 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
-            <motion.div {...fadeUp(0.1)} className="rounded-2xl border border-gray-100 p-8 bg-gray-50">
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 block">수출 시장 (대기업 중심)</span>
-              <ul className="space-y-3">
-                {["체계화된 프로세스", "전문 물류망", "풍부한 자본력으로 이미 효율적인 시스템 구축"].map((t) => (
-                  <li key={t} className="flex items-start gap-2 text-gray-600 text-sm">
-                    <CheckCircle size={15} className="text-gray-400 mt-0.5 shrink-0" /> {t}
-                  </li>
-                ))}
-              </ul>
+            <motion.div {...fadeUp(0.1)} className="card bg-base-200 border border-base-300">
+              <div className="card-body">
+                <span className="text-xs font-bold text-base-content/40 uppercase tracking-widest mb-2 block">수출 시장 (대기업 중심)</span>
+                <ul className="space-y-3">
+                  {["체계화된 프로세스", "전문 물류망", "풍부한 자본력으로 이미 효율적인 시스템 구축"].map((t) => (
+                    <li key={t} className="flex items-start gap-2 text-base-content/60 text-sm">
+                      <CheckCircle size={15} className="text-base-content/30 mt-0.5 shrink-0" /> {t}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </motion.div>
-            <motion.div {...fadeUp(0.15)} className="rounded-2xl border-2 border-blue-200 p-8 bg-blue-50">
-              <span className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-4 block">수입 시장 (초보 사업자 다수)</span>
-              <ul className="space-y-3">
-                {["1인 셀러, 스타트업, 소상공인", "정보도 인프라도 부족한 상태에서 홀로 분투"].map((t) => (
-                  <li key={t} className="flex items-start gap-2 text-gray-700 text-sm">
-                    <CheckCircle size={15} className="text-blue-500 mt-0.5 shrink-0" /> {t}
-                  </li>
-                ))}
-              </ul>
+            <motion.div {...fadeUp(0.15)} className="card bg-primary/5 border-2 border-primary/20">
+              <div className="card-body">
+                <span className="text-xs font-bold text-primary uppercase tracking-widest mb-2 block">수입 시장 (초보 사업자 다수)</span>
+                <ul className="space-y-3">
+                  {["1인 셀러, 스타트업, 소상공인", "정보도 인프라도 부족한 상태에서 홀로 분투"].map((t) => (
+                    <li key={t} className="flex items-start gap-2 text-base-content text-sm">
+                      <CheckCircle size={15} className="text-primary mt-0.5 shrink-0" /> {t}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </motion.div>
           </div>
 
-          {/* Pain points */}
-          <motion.p {...fadeUp(0.1)} className="text-gray-900 font-bold text-lg mb-6">수입무역 사업자들이 겪는 진짜 페인 포인트</motion.p>
+          <motion.p {...fadeUp(0.1)} className="font-bold text-lg mb-6">수입무역 사업자들이 겪는 진짜 페인 포인트</motion.p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             {[
               { icon: AlertTriangle, title: "정보의 부재", desc: "어디서부터 어떻게 시작해야 할지 막막함" },
               { icon: Ship, title: "물류의 복잡함", desc: "소량 수입, 불투명한 비용, 복잡한 절차" },
               { icon: LayoutGrid, title: "운영의 비효율", desc: "엑셀과 장부, 수기로 재고, 계속되는 실수" },
             ].map((item, i) => (
-              <motion.div key={i} {...fadeUp(0.1 + i * 0.08)} className="flex gap-4 p-6 rounded-2xl bg-gray-50 border border-gray-100">
-                <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
-                  <item.icon size={18} />
-                </div>
-                <div>
-                  <p className="font-bold text-gray-900 mb-1">{item.title}</p>
-                  <p className="text-gray-500 text-sm">{item.desc}</p>
+              <motion.div key={i} {...fadeUp(0.1 + i * 0.08)} className="card bg-base-200 border border-base-300">
+                <div className="card-body flex-row items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                    <item.icon size={18} />
+                  </div>
+                  <div>
+                    <p className="font-bold mb-1">{item.title}</p>
+                    <p className="text-base-content/60 text-sm">{item.desc}</p>
+                  </div>
                 </div>
               </motion.div>
             ))}
           </div>
-          <motion.p {...fadeUp(0.2)} className="text-blue-600 font-semibold text-base">
+          <motion.p {...fadeUp(0.2)} className="text-primary font-semibold text-base">
             그래서 우리는 수입무역에 집중합니다. 더 많은 사람들에게, 더 큰 도움이 필요한 곳에.
           </motion.p>
         </div>
       </section>
 
-      {/* ── Section 4: Value Props ── */}
-      <section className="py-24 bg-gray-50">
+      {/* ── Value Props ── */}
+      <section className="py-24 bg-base-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="space-y-8">
+          <div className="space-y-6">
             {[
               {
                 num: "01",
@@ -188,12 +185,14 @@ export default function AboutPage() {
             ].map((item, i) => (
               <motion.div
                 key={i} {...fadeUp(i * 0.1)}
-                className="flex flex-col md:flex-row gap-8 p-8 bg-white rounded-2xl border border-gray-100 shadow-sm"
+                className="card bg-base-100 border border-base-300 shadow-sm"
               >
-                <span className="text-5xl font-black text-blue-100 shrink-0 leading-none">{item.num}</span>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">{item.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{item.desc}</p>
+                <div className="card-body flex-row gap-8">
+                  <span className="text-5xl font-black text-primary/10 shrink-0 leading-none">{item.num}</span>
+                  <div>
+                    <h3 className="text-xl font-bold mb-3">{item.title}</h3>
+                    <p className="text-base-content/60 leading-relaxed">{item.desc}</p>
+                  </div>
                 </div>
               </motion.div>
             ))}
@@ -201,11 +200,11 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ── Section 6: The Problem ── */}
+      {/* ── The Problem ── */}
       <section className="py-24 bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div {...fadeUp()} className="mb-16">
-            <p className="text-blue-400 font-semibold text-sm tracking-widest uppercase mb-3">The Problem</p>
+            <p className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">The Problem</p>
             <h2 className="text-3xl md:text-4xl font-bold text-white">무역은 왜 어려웠을까요?</h2>
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -215,7 +214,7 @@ export default function AboutPage() {
               { icon: DollarSign, title: "불투명한 무역 비용", desc: "운송비, 관세, 부가세, 창고비... 비용이 어디서 얼마나 나가는지 알 수 없습니다." },
             ].map((item, i) => (
               <motion.div key={i} {...fadeUp(i * 0.1)} className="p-8 rounded-2xl bg-white/5 border border-white/10">
-                <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 mb-5">
+                <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center text-primary mb-5">
                   <item.icon size={22} />
                 </div>
                 <h3 className="text-white font-bold text-lg mb-3">{item.title}</h3>
@@ -226,69 +225,69 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ── Section 7: Mission ── */}
-      <section className="py-24 bg-blue-600">
+      {/* ── Mission ── */}
+      <section className="py-24 bg-primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.p {...fadeUp()} className="text-blue-200 text-sm font-semibold mb-4">그래서 우리는 시작했습니다</motion.p>
-          <motion.h2 {...fadeUp(0.1)} className="text-4xl md:text-6xl font-black text-white mb-4">
-            "무역을 쉽게 만든다"
+          <motion.p {...fadeUp()} className="text-primary-content/70 text-sm font-semibold mb-4">그래서 우리는 시작했습니다</motion.p>
+          <motion.h2 {...fadeUp(0.1)} className="text-4xl md:text-6xl font-black text-primary-content mb-4">
+            &ldquo;무역을 쉽게 만든다&rdquo;
           </motion.h2>
-          <motion.p {...fadeUp(0.15)} className="text-blue-100 text-xl mb-16">이것이 셀러노트의 미션입니다</motion.p>
+          <motion.p {...fadeUp(0.15)} className="text-primary-content/70 text-xl mb-16">이것이 셀러노트의 미션입니다</motion.p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               { icon: GraduationCap, title: "쉽게 배우고", desc: "체계적인 교육으로 누구나" },
               { icon: Ship, title: "쉽게 들여오고", desc: "디지털 포워딩으로 간편하게" },
               { icon: LayoutGrid, title: "쉽게 관리한다", desc: "올인원 솔루션으로 효율적으로" },
             ].map((item, i) => (
-              <motion.div key={i} {...fadeUp(0.2 + i * 0.08)} className="p-8 rounded-2xl bg-white/15 backdrop-blur-sm">
-                <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-white mx-auto mb-4">
+              <motion.div key={i} {...fadeUp(0.2 + i * 0.08)} className="p-8 rounded-2xl bg-primary-content/10 backdrop-blur-sm">
+                <div className="w-12 h-12 rounded-xl bg-primary-content/20 flex items-center justify-center text-primary-content mx-auto mb-4">
                   <item.icon size={22} />
                 </div>
-                <h3 className="text-white font-bold text-xl mb-2">{item.title}</h3>
-                <p className="text-blue-100 text-sm">{item.desc}</p>
+                <h3 className="text-primary-content font-bold text-xl mb-2">{item.title}</h3>
+                <p className="text-primary-content/70 text-sm">{item.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Section 5: Journey ── */}
-      <section className="py-24 bg-white" id="journey">
+      {/* ── Journey ── */}
+      <section className="py-24 bg-base-100" id="journey">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div {...fadeUp()} className="mb-16">
-            <p className="text-blue-600 font-semibold text-sm tracking-widest uppercase mb-3">Our Journey</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">셀러노트의 발자취</h2>
+            <p className="text-primary font-semibold text-sm tracking-widest uppercase mb-3">Our Journey</p>
+            <h2 className="text-3xl md:text-4xl font-bold">셀러노트의 발자취</h2>
           </motion.div>
           <div className="relative">
-            <div className="absolute left-[72px] top-0 bottom-0 w-px bg-gray-200" />
+            <div className="absolute left-[72px] top-0 bottom-0 w-px bg-base-300" />
             <div className="space-y-10">
               {JOURNEY.map((item, i) => (
                 <motion.div key={i} {...fadeUp(i * 0.05)} className="flex gap-8">
                   <div className="w-[72px] shrink-0 text-right">
-                    <span className="text-xs font-bold text-blue-600 leading-tight block">{item.date}</span>
+                    <span className="text-xs font-bold text-primary leading-tight block">{item.date}</span>
                   </div>
                   <div className="relative pb-2">
-                    <div className="absolute -left-[29px] top-1 w-3 h-3 rounded-full bg-blue-600 border-2 border-white shadow-sm" />
-                    <h4 className="font-bold text-gray-900 mb-1">{item.title}</h4>
-                    <p className="text-gray-500 text-sm">{item.desc}</p>
+                    <div className="absolute -left-[29px] top-1 w-3 h-3 rounded-full bg-primary border-2 border-base-100 shadow-sm" />
+                    <h4 className="font-bold mb-1">{item.title}</h4>
+                    <p className="text-base-content/60 text-sm">{item.desc}</p>
                   </div>
                 </motion.div>
               ))}
             </div>
           </div>
-          <motion.p {...fadeUp(0.2)} className="mt-14 text-gray-500 text-sm text-center leading-relaxed">
+          <motion.p {...fadeUp(0.2)} className="mt-14 text-base-content/50 text-sm text-center leading-relaxed">
             셀러노트는 오늘도 무역을 더 쉽게 만들기 위해 한 걸음씩 나아갑니다.<br />
             어제보다 오늘, 오늘보다 내일 더 쉬운 무역을 위해. 그 발자취는 계속됩니다.
           </motion.p>
         </div>
       </section>
 
-      {/* ── Section 8: Vision ── */}
-      <section className="py-24 bg-gray-50" id="vision">
+      {/* ── Vision ── */}
+      <section className="py-24 bg-base-200" id="vision">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div {...fadeUp()} className="mb-16">
-            <p className="text-blue-600 font-semibold text-sm tracking-widest uppercase mb-3">Our Vision</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">셀러노트가 만들어갈<br />새로운 무역</h2>
+            <p className="text-primary font-semibold text-sm tracking-widest uppercase mb-3">Our Vision</p>
+            <h2 className="text-3xl md:text-4xl font-bold">셀러노트가 만들어갈<br />새로운 무역</h2>
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
@@ -296,27 +295,29 @@ export default function AboutPage() {
               { num: "02", icon: Layers, title: "수입 원스톱 솔루션", desc: "교육, 운송, 관리까지 하나의 생태계에서 해결합니다." },
               { num: "03", icon: User, title: "1인 무역 셀러의 성장", desc: "개인 셀러도 해외 직수입으로 경쟁력을 가질 수 있도록 지원합니다." },
             ].map((item, i) => (
-              <motion.div key={i} {...fadeUp(i * 0.1)} className="p-8 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                <div className="flex items-start gap-4 mb-4">
-                  <span className="text-3xl font-black text-blue-100 leading-none">{item.num}</span>
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
-                    <item.icon size={18} />
+              <motion.div key={i} {...fadeUp(i * 0.1)} className="card bg-base-100 border border-base-300 shadow-sm">
+                <div className="card-body">
+                  <div className="flex items-start gap-4 mb-2">
+                    <span className="text-3xl font-black text-primary/15 leading-none">{item.num}</span>
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                      <item.icon size={18} />
+                    </div>
                   </div>
+                  <h3 className="card-title text-lg">{item.title}</h3>
+                  <p className="text-base-content/60 text-sm leading-relaxed">{item.desc}</p>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">{item.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Section 9: Services ── */}
-      <section className="py-24 bg-white" id="services">
+      {/* ── Services ── */}
+      <section className="py-24 bg-base-100" id="services">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div {...fadeUp()} className="mb-16">
-            <p className="text-blue-600 font-semibold text-sm tracking-widest uppercase mb-3">Our Services</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">셀러노트 생태계</h2>
+            <p className="text-primary font-semibold text-sm tracking-widest uppercase mb-3">Our Services</p>
+            <h2 className="text-3xl md:text-4xl font-bold">셀러노트 생태계</h2>
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
@@ -342,25 +343,27 @@ export default function AboutPage() {
               <motion.div
                 key={i} {...fadeUp(i * 0.1)}
                 whileHover={{ y: -6, transition: { duration: 0.2 } }}
-                className="group p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-shadow flex flex-col"
+                className="card bg-base-100 border border-base-200 shadow-sm hover:shadow-lg transition-shadow group"
               >
-                <div className="w-14 h-14 rounded-2xl bg-blue-50 group-hover:bg-blue-600 flex items-center justify-center text-blue-600 group-hover:text-white transition-colors mb-5">
-                  <item.icon size={26} />
+                <div className="card-body">
+                  <div className="w-14 h-14 rounded-2xl bg-primary/10 group-hover:bg-primary flex items-center justify-center text-primary group-hover:text-primary-content transition-colors mb-2">
+                    <item.icon size={26} />
+                  </div>
+                  <div className="badge badge-primary badge-outline badge-sm self-start">{item.tag}</div>
+                  <h3 className="card-title text-xl">{item.name}</h3>
+                  <p className="text-base-content/60 text-sm leading-relaxed flex-1">{item.desc}</p>
                 </div>
-                <span className="text-xs font-bold text-blue-500 uppercase tracking-wide mb-2">{item.tag}</span>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">{item.name}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed flex-grow">{item.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Section 10: API ── */}
+      {/* ── API ── */}
       <section className="py-24 bg-gray-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div {...fadeUp()} className="mb-16">
-            <p className="text-blue-400 font-semibold text-sm tracking-widest uppercase mb-3">For Developers</p>
+            <p className="text-primary text-sm font-semibold tracking-widest uppercase mb-3">For Developers</p>
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">무역 데이터 API 프로토콜</h2>
             <p className="text-gray-400 text-lg max-w-xl">
               셀러노트의 무역 기술을 구독형 API로 제공합니다.<br />
@@ -373,7 +376,7 @@ export default function AboutPage() {
                 icon: FileText,
                 title: "무역서류 파싱 API",
                 desc: "인보이스, 패킹리스트, B/L, 원산지증명서 등 각종 무역서류를 개발 가능한 JSON 형태로 자동 변환합니다.",
-                tags: [],
+                tags: [] as string[],
               },
               {
                 icon: Zap,
@@ -383,7 +386,7 @@ export default function AboutPage() {
               },
             ].map((item, i) => (
               <motion.div key={i} {...fadeUp(i * 0.1)} className="p-8 rounded-2xl bg-white/5 border border-white/10">
-                <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 mb-5">
+                <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center text-primary mb-5">
                   <item.icon size={22} />
                 </div>
                 <h3 className="text-white font-bold text-xl mb-3">{item.title}</h3>
@@ -391,7 +394,7 @@ export default function AboutPage() {
                 {item.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {item.tags.map((tag) => (
-                      <span key={tag} className="text-xs px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-300">{tag}</span>
+                      <span key={tag} className="badge badge-ghost text-primary border-primary/30 badge-sm">{tag}</span>
                     ))}
                   </div>
                 )}
@@ -399,42 +402,36 @@ export default function AboutPage() {
             ))}
           </div>
           <motion.div {...fadeUp(0.2)} className="flex items-center gap-3 text-gray-400 text-sm">
-            <Mail size={16} className="text-blue-400 shrink-0" />
+            <Mail size={16} className="text-primary shrink-0" />
             API 도입 문의:&nbsp;
-            <a href="mailto:api@seller-note.com" className="text-blue-400 hover:text-blue-300 transition-colors">
+            <a href="mailto:api@seller-note.com" className="link link-primary">
               api@seller-note.com
             </a>
           </motion.div>
         </div>
       </section>
 
-      {/* ── Section 11: CTA ── */}
-      <section className="py-24 bg-white">
+      {/* ── CTA ── */}
+      <section className="py-24 bg-base-100">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
             {...fadeUp()}
-            className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-3xl p-12 md:p-16 text-white shadow-xl shadow-blue-500/20 relative overflow-hidden"
+            className="bg-gradient-to-br from-primary to-blue-700 rounded-3xl p-12 md:p-16 text-primary-content shadow-xl shadow-primary/20 relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
             <div className="relative z-10">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
                 무역, 이제 쉽게 시작하세요
               </h2>
-              <p className="text-blue-100 text-lg mb-10">
+              <p className="text-primary-content/70 text-lg mb-10">
                 셀러노트와 함께라면 1인 무역도 충분히 가능합니다.<br />
                 현재 수입무역에 특화된 서비스를 제공합니다.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link
-                  href="/register"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-blue-600 font-bold rounded-full hover:bg-gray-50 transition-colors shadow-md"
-                >
+                <Link href="/register" className="btn btn-lg bg-white text-primary hover:bg-base-200 rounded-full shadow-md gap-2 border-0">
                   무료로 시작하기 <ArrowRight size={16} />
                 </Link>
-                <Link
-                  href="/courses"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 border-2 border-white/40 text-white font-bold rounded-full hover:bg-white/10 transition-colors"
-                >
+                <Link href="/courses" className="btn btn-lg rounded-full border-2 border-primary-content/30 text-primary-content hover:bg-primary-content/10 gap-2">
                   강의 둘러보기
                 </Link>
               </div>
@@ -444,35 +441,27 @@ export default function AboutPage() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="bg-gray-950 text-gray-400 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-10">
-            <div>
-              <p className="text-white font-bold text-lg mb-2">Sellernote</p>
-              <p className="text-sm max-w-xs leading-relaxed">무역을 쉽게 만드는 사람들.<br />수입무역 교육 · 물류 · SaaS 생태계</p>
-            </div>
-            <div className="flex flex-wrap gap-x-12 gap-y-4 text-sm">
-              <div className="space-y-2">
-                <p className="text-gray-500 font-semibold text-xs uppercase tracking-wide mb-3">서비스</p>
-                <p className="hover:text-white cursor-pointer transition-colors">셀러노트 강의</p>
-                <p className="hover:text-white cursor-pointer transition-colors">쉽다 (ShipDa)</p>
-                <p className="hover:text-white cursor-pointer transition-colors">위딜라이즈 (WeDealize)</p>
-              </div>
-              <div className="space-y-2">
-                <p className="text-gray-500 font-semibold text-xs uppercase tracking-wide mb-3">회사</p>
-                <Link href="/about" className="block hover:text-white transition-colors">회사소개</Link>
-                <Link href="/inquiry" className="block hover:text-white transition-colors">문의하기</Link>
-                <a href="mailto:api@seller-note.com" className="hover:text-white transition-colors block">API 문의</a>
-              </div>
-            </div>
-          </div>
-          <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
-            <p>© 2024 Sellernote Inc. 모든 권리 보유.</p>
-            <p>api@seller-note.com</p>
-          </div>
-        </div>
+      <footer className="footer bg-gray-950 text-gray-400 p-12 border-t border-white/10">
+        <aside>
+          <p className="text-white font-bold text-lg mb-2">Sellernote</p>
+          <p className="text-sm max-w-xs leading-relaxed">무역을 쉽게 만드는 사람들.<br />수입무역 교육 · 물류 · SaaS 생태계</p>
+        </aside>
+        <nav>
+          <h6 className="footer-title text-gray-500">서비스</h6>
+          <a className="link link-hover">셀러노트 강의</a>
+          <a className="link link-hover">쉽다 (ShipDa)</a>
+          <a className="link link-hover">위딜라이즈 (WeDealize)</a>
+        </nav>
+        <nav>
+          <h6 className="footer-title text-gray-500">회사</h6>
+          <Link href="/about" className="link link-hover">회사소개</Link>
+          <Link href="/inquiry" className="link link-hover">문의하기</Link>
+          <a href="mailto:api@seller-note.com" className="link link-hover">API 문의</a>
+        </nav>
       </footer>
-
+      <div className="bg-gray-950 text-gray-600 text-xs text-center py-4 border-t border-white/5">
+        © 2025 Sellernote Inc. 모든 권리 보유.
+      </div>
     </div>
   );
 }

@@ -10,50 +10,48 @@ function NavAuth() {
   const { data: session, status } = useSession();
 
   if (status === "loading") {
-    return <div className="w-20 h-8 bg-gray-100 rounded-full animate-pulse" />;
+    return <div className="w-20 h-8 skeleton rounded-full" />;
   }
 
   if (session?.user) {
     return (
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2">
+        <div className="avatar online" title={session.user.name ?? session.user.email ?? ""}>
           {session.user.image ? (
-            <Image
-              src={session.user.image}
-              alt={session.user.name ?? ""}
-              width={32}
-              height={32}
-              className="rounded-full"
-            />
+            <div className="w-8 rounded-full">
+              <Image
+                src={session.user.image}
+                alt={session.user.name ?? ""}
+                width={32}
+                height={32}
+              />
+            </div>
           ) : (
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
               <User size={16} />
             </div>
           )}
-          <span className="text-sm font-medium text-gray-700 max-w-[100px] truncate">
-            {session.user.name ?? session.user.email}
-          </span>
         </div>
+        <span className="hidden sm:block text-sm font-medium max-w-[100px] truncate">
+          {session.user.name ?? session.user.email}
+        </span>
         <button
           onClick={() => signOut({ callbackUrl: "/" })}
-          className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors"
+          className="btn btn-ghost btn-sm gap-1 text-base-content/60"
         >
-          <LogOut size={15} />
-          <span>로그아웃</span>
+          <LogOut size={14} />
+          <span className="hidden sm:inline">로그아웃</span>
         </button>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-4">
-      <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+    <div className="flex items-center gap-2">
+      <Link href="/login" className="btn btn-ghost btn-sm">
         로그인
       </Link>
-      <Link
-        href="/register"
-        className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium rounded-full text-white bg-blue-600 hover:bg-blue-700 shadow-sm transition-all hover:shadow hover:-translate-y-0.5"
-      >
+      <Link href="/register" className="btn btn-primary btn-sm rounded-full px-5">
         시작하기
       </Link>
     </div>
@@ -72,40 +70,41 @@ export default function Navbar() {
   if (/^\/courses\/.+\/player/.test(pathname)) return null;
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          {/* Logo */}
-          <Link href="/" className="flex-shrink-0 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
-              <Rocket size={18} fill="currentColor" />
-            </div>
-            <span className="font-bold text-xl tracking-tight">Sellernote</span>
-          </Link>
+    <div className="navbar sticky top-0 z-50 bg-base-100/80 backdrop-blur-md border-b border-base-200 px-4 lg:px-8">
+      {/* Start: Logo */}
+      <div className="navbar-start">
+        <Link href="/" className="flex items-center gap-2 shrink-0">
+          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-content">
+            <Rocket size={17} fill="currentColor" />
+          </div>
+          <span className="font-bold text-xl tracking-tight">Sellernote</span>
+        </Link>
+      </div>
 
-          {/* Menu */}
-          <div className="hidden md:flex space-x-10">
-            {NAV_ITEMS.map((item) => (
+      {/* Center: Nav links */}
+      <div className="navbar-center hidden md:flex">
+        <ul className="menu menu-horizontal px-1 gap-1">
+          {NAV_ITEMS.map((item) => (
+            <li key={item.href}>
               <Link
-                key={item.href}
                 href={item.href}
-                className={`text-sm font-medium transition-colors ${
+                className={`text-sm font-medium rounded-lg ${
                   pathname === item.href
-                    ? "text-blue-600"
-                    : "text-gray-600 hover:text-blue-600"
+                    ? "text-primary bg-primary/8"
+                    : "text-base-content/70 hover:text-base-content hover:bg-base-200"
                 }`}
               >
                 {item.label}
               </Link>
-            ))}
-          </div>
-
-          {/* Auth */}
-          <div className="hidden md:flex items-center">
-            <NavAuth />
-          </div>
-        </div>
+            </li>
+          ))}
+        </ul>
       </div>
-    </nav>
+
+      {/* End: Auth */}
+      <div className="navbar-end">
+        <NavAuth />
+      </div>
+    </div>
   );
 }
