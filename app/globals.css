@@ -1,17 +1,16 @@
 @import "tailwindcss";
-@plugin "daisyui" {
-  themes: corporate --default;
-}
 
 @theme inline {
   --font-sans: "Pretendard", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
-/* Override primary to brand blue (#2563eb) */
-[data-theme="corporate"] {
-  --color-primary: oklch(53.06% 0.2392 261.71);
-  --color-primary-content: oklch(98.56% 0.005 264.54);
-  --color-secondary: oklch(52.27% 0.178 276.22);
-  --color-secondary-content: oklch(98% 0 0);
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
 }

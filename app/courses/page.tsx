@@ -3,33 +3,31 @@
 import Link from "next/link";
 import { motion } from "motion/react";
 import { courses } from "@/app/data/courses";
-import { BookOpen, Clock, User, ChevronRight, GraduationCap } from "lucide-react";
+import { BookOpen, Clock, User, ChevronRight } from "lucide-react";
 
-const levelBadge: Record<string, string> = {
-  입문: "badge-success",
-  중급: "badge-warning",
-  고급: "badge-error",
+const levelColor: Record<string, string> = {
+  입문: "bg-green-50 text-green-700",
+  초급: "bg-blue-50 text-blue-700",
+  중급: "bg-orange-50 text-orange-700",
+  고급: "bg-red-50 text-red-700",
 };
 
 export default function CoursesPage() {
   return (
-    <div className="min-h-screen bg-base-100">
+    <div className="min-h-screen bg-white">
       {/* Hero */}
-      <section className="bg-base-200 border-b border-base-300 py-14">
+      <section className="bg-gray-50 border-b border-gray-100 py-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            className="flex items-center gap-2 mb-3"
+          <motion.p
+            className="text-blue-600 font-semibold text-sm mb-2"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <div className="badge badge-primary badge-outline gap-1">
-              <GraduationCap size={11} />
-              수입 소싱 교육
-            </div>
-          </motion.div>
+            수입 소싱 교육
+          </motion.p>
           <motion.h1
-            className="text-3xl md:text-4xl font-bold mb-3"
+            className="text-3xl md:text-4xl font-bold text-gray-900 mb-3"
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.08 }}
@@ -37,7 +35,7 @@ export default function CoursesPage() {
             강의 목록
           </motion.h1>
           <motion.p
-            className="text-base-content/60 text-lg"
+            className="text-gray-500 text-lg"
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.16 }}
@@ -57,47 +55,47 @@ export default function CoursesPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
               transition={{ duration: 0.4, delay: index * 0.07 }}
-              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              whileHover={{ y: -5, transition: { duration: 0.2 } }}
             >
-              <Link href={`/courses/${course.id}`} className="card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-shadow overflow-hidden h-full flex flex-col group">
+              <Link
+                href={`/courses/${course.id}`}
+                className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col h-full"
+              >
                 {/* Thumbnail */}
-                <figure className={`h-36 bg-gradient-to-br ${course.thumbnail} flex items-end p-4 relative overflow-hidden`}>
-                  <span className="badge badge-ghost bg-white/20 text-white backdrop-blur-sm border-0 text-xs font-semibold">
+                <div className={`h-36 bg-gradient-to-br ${course.thumbnail} flex items-end p-5`}>
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-white/20 text-white backdrop-blur-sm">
                     {course.category}
                   </span>
-                  <span className={`badge absolute top-3 right-3 border-0 font-bold ${course.badge === "LIVE" ? "bg-error text-error-content" : "bg-black/30 text-white"}`}>
-                    {course.badge === "LIVE" ? "🔴 LIVE" : "VOD"}
-                  </span>
-                </figure>
+                </div>
 
                 {/* Content */}
-                <div className="card-body flex-1 gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className={`badge badge-sm ${levelBadge[course.level] ?? "badge-ghost"}`}>
+                <div className="p-6 flex flex-col flex-grow">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${levelColor[course.level]}`}>
                       {course.level}
                     </span>
                   </div>
 
-                  <h2 className="card-title text-base leading-snug group-hover:text-primary transition-colors">
+                  <h2 className="font-bold text-gray-900 text-lg mb-2 group-hover:text-blue-600 transition-colors leading-snug">
                     {course.title}
                   </h2>
-                  <p className="text-base-content/60 text-sm leading-relaxed flex-1 line-clamp-2">
+                  <p className="text-gray-500 text-sm leading-relaxed mb-5 flex-grow line-clamp-2">
                     {course.description}
                   </p>
 
-                  <div className="flex items-center justify-between text-xs text-base-content/50 pt-3 border-t border-base-200">
+                  <div className="flex items-center justify-between text-sm text-gray-400 pt-4 border-t border-gray-50">
                     <div className="flex items-center gap-3">
                       <span className="flex items-center gap-1">
-                        <BookOpen size={12} />
+                        <BookOpen size={13} />
                         {course.lessons.length}강
                       </span>
                       <span className="flex items-center gap-1">
-                        <Clock size={12} />
+                        <Clock size={13} />
                         {course.totalDuration}
                       </span>
                     </div>
                     <span className="flex items-center gap-1">
-                      <User size={12} />
+                      <User size={13} />
                       {course.instructor}
                     </span>
                   </div>
@@ -105,8 +103,8 @@ export default function CoursesPage() {
 
                 {/* CTA */}
                 <div className="px-6 pb-5">
-                  <div className="flex items-center text-primary text-sm font-semibold gap-1 group-hover:gap-2 transition-all">
-                    강의 보기 <ChevronRight size={14} />
+                  <div className="flex items-center text-blue-600 text-sm font-semibold gap-1 group-hover:gap-2 transition-all">
+                    강의 보기 <ChevronRight size={15} />
                   </div>
                 </div>
               </Link>
