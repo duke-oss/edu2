@@ -25,7 +25,11 @@ export default function CoursePlayer({ course }: { course: Course }) {
             강의 목록
           </Link>
           <ChevronRight size={14} className="text-gray-600 shrink-0" />
-          <span className="text-sm text-white font-medium truncate">{course.title}</span>
+          <Link href={`/courses/${course.id}`} className="text-sm text-gray-400 hover:text-white transition-colors truncate max-w-[160px]">
+            {course.title}
+          </Link>
+          <ChevronRight size={14} className="text-gray-600 shrink-0" />
+          <span className="text-sm text-white font-medium shrink-0">수강 중</span>
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-4">
           <span className="text-xs text-gray-400 hidden sm:block">

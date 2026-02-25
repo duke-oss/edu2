@@ -69,7 +69,7 @@ const NAV_ITEMS = [
 export default function Navbar() {
   const pathname = usePathname();
 
-  if (/^\/courses\/.+/.test(pathname)) return null;
+  if (/^\/courses\/.+\/player/.test(pathname)) return null;
 
   return (
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">

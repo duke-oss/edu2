@@ -4,11 +4,17 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import {
-  Ship, Package, FileText, Globe, ShieldCheck,
+  Ship, Package, FileText, Globe, ShieldCheck, Handshake,
   BookOpen, TrendingUp, Leaf, ShoppingCart, Scale, Lightbulb,
   MessageCircle, Calendar, MapPin, Star, Users,
-  GraduationCap, Award, Clock, ArrowRight, Handshake,
+  GraduationCap, Award, Clock, ArrowRight,
 } from "lucide-react";
+import { courses } from "@/app/data/courses";
+
+const COURSE_ICONS = [Ship, Package, ShieldCheck, Handshake, FileText, Globe];
+const ICON_MAP = Object.fromEntries(courses.map((c, i) => [c.id, COURSE_ICONS[i] ?? Ship]));
+
+const FILTERS = ["전체", "입문", "무역 실무", "물류·운송", "통관·관세", "LIVE"];
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 24 },
@@ -18,59 +24,6 @@ const fadeUp = (delay = 0) => ({
 });
 
 // ─── Data ────────────────────────────────────────────────────
-
-const FILTERS = ["전체", "입문", "무역 실무", "물류·운송", "통관·관세", "LIVE"];
-
-const COURSES = [
-  {
-    id: 1, icon: Ship,
-    gradient: "from-blue-600 to-blue-400",
-    badge: "VOD", level: "입문",
-    title: "수입 비즈니스 완전 정복 A to Z",
-    duration: "8시간 30분", students: "892명",
-    price: "무료", free: true, category: "입문",
-  },
-  {
-    id: 2, icon: Package,
-    gradient: "from-violet-600 to-violet-400",
-    badge: "LIVE", level: "중급",
-    title: "FOB·CIF 인코텀즈 실전 마스터",
-    duration: "매주 화·목", students: "124명",
-    price: "₩198,000", free: false, category: "무역 실무",
-  },
-  {
-    id: 3, icon: ShieldCheck,
-    gradient: "from-emerald-600 to-emerald-400",
-    badge: "VOD", level: "중급",
-    title: "통관·관세 완전 이해 실무 과정",
-    duration: "6시간 15분", students: "645명",
-    price: "₩149,000", free: false, category: "통관·관세",
-  },
-  {
-    id: 4, icon: Handshake,
-    gradient: "from-amber-500 to-amber-300",
-    badge: "LIVE", level: "고급",
-    title: "해외 공급업체 협상 전략 & 계약서",
-    duration: "매주 토", students: "78명",
-    price: "₩298,000", free: false, category: "무역 실무",
-  },
-  {
-    id: 5, icon: FileText,
-    gradient: "from-rose-600 to-rose-400",
-    badge: "VOD", level: "입문",
-    title: "무역 서류 완벽 이해 (L/C, B/L, C/O)",
-    duration: "4시간 50분", students: "1,204명",
-    price: "₩89,000", free: false, category: "무역 실무",
-  },
-  {
-    id: 6, icon: Globe,
-    gradient: "from-indigo-600 to-indigo-400",
-    badge: "VOD", level: "고급",
-    title: "중국·동남아 소싱 전략과 현장 실무",
-    duration: "10시간 20분", students: "437명",
-    price: "₩248,000", free: false, category: "물류·운송",
-  },
-];
 
 const BLOGS = [
   { icon: TrendingUp, bg: "bg-blue-50", color: "text-blue-600", category: "무역 동향", title: "2025년 해상 운임 동향과 수입업체 대응 전략", desc: "BDI 지수 변화와 컨테이너 운임 급등락의 원인을 분석하고 효과적인 대응 방법을 알아봅니다.", date: "2025.01.15" },
@@ -164,9 +117,9 @@ export default function Home() {
   const [activeFilter, setActiveFilter] = useState("전체");
 
   const filteredCourses =
-    activeFilter === "전체" ? COURSES
-    : activeFilter === "LIVE" ? COURSES.filter((c) => c.badge === "LIVE")
-    : COURSES.filter((c) => c.category === activeFilter);
+    activeFilter === "전체" ? courses
+    : activeFilter === "LIVE" ? courses.filter((c) => c.badge === "LIVE")
+    : courses.filter((c) => c.category === activeFilter);
 
   return (
     <div className="bg-white text-gray-900">
@@ -264,35 +217,37 @@ export default function Home() {
           </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredCourses.map((course, i) => (
-              <motion.div key={course.id} {...fadeUp(i * 0.07)}>
-                <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer h-full flex flex-col">
-                  <div className={`h-40 bg-gradient-to-br ${course.gradient} flex items-center justify-center relative`}>
-                    <course.icon size={52} className="text-white/30" />
-                    <span className={`absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-lg text-white ${course.badge === "LIVE" ? "bg-red-500" : "bg-black/30"}`}>
-                      {course.badge === "LIVE" ? "🔴 LIVE" : "VOD"}
-                    </span>
-                  </div>
-                  <div className="p-5 flex flex-col flex-1">
-                    <div className="text-xs font-bold text-blue-600 mb-1">{course.level}</div>
-                    <h3 className="font-bold text-sm leading-snug mb-3 flex-1">{course.title}</h3>
-                    <div className="flex gap-4 text-xs text-gray-400 mb-4">
-                      <span className="flex items-center gap-1"><Clock size={11} /> {course.duration}</span>
-                      <span className="flex items-center gap-1"><Users size={11} /> {course.students}</span>
+            {filteredCourses.map((course, i) => {
+              const Icon = ICON_MAP[course.id] ?? Ship;
+              return (
+                <motion.div key={course.id} {...fadeUp(i * 0.07)}>
+                  <Link href={`/courses/${course.id}`} className="block h-full">
+                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-1 transition-all h-full flex flex-col">
+                      <div className={`h-40 bg-gradient-to-br ${course.thumbnail} flex items-center justify-center relative`}>
+                        <Icon size={52} className="text-white/30" />
+                        <span className={`absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-lg text-white ${course.badge === "LIVE" ? "bg-red-500" : "bg-black/30"}`}>
+                          {course.badge === "LIVE" ? "🔴 LIVE" : "VOD"}
+                        </span>
+                      </div>
+                      <div className="p-5 flex flex-col flex-1">
+                        <div className="text-xs font-bold text-blue-600 mb-1">{course.level}</div>
+                        <h3 className="font-bold text-sm leading-snug mb-3 flex-1">{course.title}</h3>
+                        <div className="flex gap-4 text-xs text-gray-400 mb-4">
+                          <span className="flex items-center gap-1"><Clock size={11} /> {course.totalDuration}</span>
+                          <span className="flex items-center gap-1"><Users size={11} /> {course.students}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className={`font-black text-lg ${course.free ? "text-blue-600" : "text-gray-900"}`}>{course.price}</span>
+                          <span className="text-xs font-bold bg-blue-600 text-white px-3.5 py-1.5 rounded-full">
+                            자세히 보기
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className={`font-black text-lg ${course.free ? "text-blue-600" : "text-gray-900"}`}>{course.price}</span>
-                      <Link
-                        href="/courses"
-                        className="text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 rounded-full transition-colors"
-                      >
-                        수강신청
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+                  </Link>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
