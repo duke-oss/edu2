@@ -460,7 +460,7 @@ export default function AboutPage() {
               </div>
               <div className="space-y-2">
                 <p className="text-gray-500 font-semibold text-xs uppercase tracking-wide mb-3">회사</p>
-                <Link href="/" className="block hover:text-white transition-colors">회사소개</Link>
+                <Link href="/about" className="block hover:text-white transition-colors">회사소개</Link>
                 <Link href="/inquiry" className="block hover:text-white transition-colors">문의하기</Link>
                 <a href="mailto:api@seller-note.com" className="hover:text-white transition-colors block">API 문의</a>
               </div>
