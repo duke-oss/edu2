@@ -61,7 +61,7 @@ function NavAuth() {
 }
 
 const NAV_ITEMS = [
-  { label: "회사소개", href: "/" },
+  { label: "회사소개", href: "/about" },
   { label: "문의하기", href: "/inquiry" },
   { label: "강의", href: "/courses" },
 ];

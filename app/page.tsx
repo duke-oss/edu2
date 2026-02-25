@@ -1,476 +1,515 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import {
-  BookOpen, TrendingUp, Star, Package,
-  FileText, AlertTriangle, DollarSign,
-  GraduationCap, Ship, LayoutGrid,
-  Target, Layers, User,
-  Code, Zap, Mail,
-  ArrowRight, CheckCircle,
+  Ship, Package, FileText, Globe, ShieldCheck,
+  BookOpen, TrendingUp, Leaf, ShoppingCart, Scale, Lightbulb,
+  MessageCircle, Calendar, MapPin, Star, Users,
+  GraduationCap, Award, Clock, ArrowRight, Handshake,
 } from "lucide-react";
 
 const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 28 },
+  initial: { opacity: 0, y: 24 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true, margin: "-60px" },
-  transition: { duration: 0.55, delay },
+  transition: { duration: 0.5, delay },
 });
 
-const JOURNEY = [
-  { date: "2018.03", title: "셀러노트 시작", desc: "1인 수입무역 창업자를 위한 교육 콘텐츠 제작 시작" },
-  { date: "2019.06", title: "첫 오프라인 강의 개설", desc: "수입무역 입문 과정 첫 기수 모집, 30명 수료" },
-  { date: "2020.01", title: "법인 설립", desc: "주식회사 셀러노트 공식 법인 설립" },
-  { date: "2020.08", title: "온라인 플랫폼 런칭", desc: "코로나19 대응, 수입무역 교육 온라인 플랫폼 오픈" },
-  { date: "2021.04", title: "누적 수강생 1,000명 돌파", desc: "수입무역 교육 수요 급증, 커리큘럼 확대" },
-  { date: "2022.02", title: "쉽다(ShipDa) 런칭", desc: "수입무역 물류 디지털 포워딩 서비스 출시" },
-  { date: "2022.11", title: "시드 투자 유치", desc: "시드 라운드 투자 유치, 서비스 고도화 착수" },
-  { date: "2023.05", title: "위딜라이즈(WeDealize) 출시", desc: "수입무역 발주/주문 관리 SaaS, 생태계 완성" },
-  { date: "2024.03", title: "누적 수강생 10,000명 돌파", desc: "수입무역 교육 분야 국내 1위 달성" },
-  { date: "2024.12", title: "Open API 서비스 출시", desc: "수입무역 서류 파서, 워크플로우 자동화 API 공개" },
+// ─── Data ────────────────────────────────────────────────────
+
+const FILTERS = ["전체", "입문", "무역 실무", "물류·운송", "통관·관세", "LIVE"];
+
+const COURSES = [
+  {
+    id: 1, icon: Ship,
+    gradient: "from-blue-600 to-blue-400",
+    badge: "VOD", level: "입문",
+    title: "수입 비즈니스 완전 정복 A to Z",
+    duration: "8시간 30분", students: "892명",
+    price: "무료", free: true, category: "입문",
+  },
+  {
+    id: 2, icon: Package,
+    gradient: "from-violet-600 to-violet-400",
+    badge: "LIVE", level: "중급",
+    title: "FOB·CIF 인코텀즈 실전 마스터",
+    duration: "매주 화·목", students: "124명",
+    price: "₩198,000", free: false, category: "무역 실무",
+  },
+  {
+    id: 3, icon: ShieldCheck,
+    gradient: "from-emerald-600 to-emerald-400",
+    badge: "VOD", level: "중급",
+    title: "통관·관세 완전 이해 실무 과정",
+    duration: "6시간 15분", students: "645명",
+    price: "₩149,000", free: false, category: "통관·관세",
+  },
+  {
+    id: 4, icon: Handshake,
+    gradient: "from-amber-500 to-amber-300",
+    badge: "LIVE", level: "고급",
+    title: "해외 공급업체 협상 전략 & 계약서",
+    duration: "매주 토", students: "78명",
+    price: "₩298,000", free: false, category: "무역 실무",
+  },
+  {
+    id: 5, icon: FileText,
+    gradient: "from-rose-600 to-rose-400",
+    badge: "VOD", level: "입문",
+    title: "무역 서류 완벽 이해 (L/C, B/L, C/O)",
+    duration: "4시간 50분", students: "1,204명",
+    price: "₩89,000", free: false, category: "무역 실무",
+  },
+  {
+    id: 6, icon: Globe,
+    gradient: "from-indigo-600 to-indigo-400",
+    badge: "VOD", level: "고급",
+    title: "중국·동남아 소싱 전략과 현장 실무",
+    duration: "10시간 20분", students: "437명",
+    price: "₩248,000", free: false, category: "물류·운송",
+  },
 ];
 
+const BLOGS = [
+  { icon: TrendingUp, bg: "bg-blue-50", color: "text-blue-600", category: "무역 동향", title: "2025년 해상 운임 동향과 수입업체 대응 전략", desc: "BDI 지수 변화와 컨테이너 운임 급등락의 원인을 분석하고 효과적인 대응 방법을 알아봅니다.", date: "2025.01.15" },
+  { icon: FileText, bg: "bg-violet-50", color: "text-violet-600", category: "무역 서류", title: "Letter of Credit 개설부터 네고까지 완벽 가이드", desc: "초보 수입업자가 가장 헷갈려하는 L/C 프로세스를 단계별로 쉽게 설명합니다.", date: "2025.01.08" },
+  { icon: Leaf, bg: "bg-emerald-50", color: "text-emerald-600", category: "통관·관세", title: "FTA 원산지 증명서 활용으로 관세 절감하는 법", desc: "한-미, 한-EU FTA 협정세율을 제대로 활용해 수입 비용을 줄이는 실전 방법을 공유합니다.", date: "2024.12.28" },
+  { icon: ShoppingCart, bg: "bg-amber-50", color: "text-amber-600", category: "소싱 전략", title: "알리바바 소싱 시 절대 하지 말아야 할 실수 10가지", desc: "수천 명의 수강생 사례를 통해 정리한 알리바바 소싱 실패 패턴과 예방법을 공개합니다.", date: "2024.12.20" },
+  { icon: Scale, bg: "bg-rose-50", color: "text-rose-600", category: "법규·규정", title: "수입 금지·제한 품목 완벽 정리 (2025년 최신판)", desc: "KC 인증, 식품검역, 전파법 등 국내 반입 시 주의해야 할 규정들을 품목별로 정리했습니다.", date: "2024.12.10" },
+  { icon: Lightbulb, bg: "bg-indigo-50", color: "text-indigo-600", category: "실전 사례", title: "월 매출 3억 달성한 수입업체의 물류 시스템 공개", desc: "셀러노트 수강 후 성공한 실제 창업자의 인터뷰와 핵심 물류 운영 노하우를 담았습니다.", date: "2024.12.03" },
+];
+
+const QAS = [
+  {
+    initial: "김", gradient: "from-blue-600 to-blue-400",
+    name: "김민준", time: "2시간 전",
+    question: "중국 공장에서 EXW로 오퍼받았는데 FOB로 전환하는 게 나을까요?",
+    answer: "물량 규모와 포워더 협상력에 따라 다릅니다. 초기에는 FOB가 관리 편의상 유리하지만, 물량이 쌓이면 EXW + 고정 포워더 조합이 비용 절감에 효과적입니다.",
+    tags: ["인코텀즈", "중국소싱", "물류비용"],
+  },
+  {
+    initial: "이", gradient: "from-violet-600 to-violet-400",
+    name: "이수진", time: "5시간 전",
+    question: "B/L 발행 후 선적 취소가 가능한가요? 페널티는 얼마나 되나요?",
+    answer: "B/L 발행 전 취소는 비교적 쉽지만 이후에는 복잡합니다. 선사마다 다르지만 통상 운임의 20~50% 취소 수수료가 발생합니다.",
+    tags: ["B/L", "선적취소", "수수료"],
+  },
+  {
+    initial: "박", gradient: "from-emerald-600 to-emerald-400",
+    name: "박지훈", time: "어제",
+    question: "KC 인증 없이 소량 수입하면 통관 거절되나요?",
+    answer: "품목에 따라 다릅니다. 개인 사용 목적의 소량은 통관 가능하나, 판매 목적이라면 KC 인증은 필수입니다. 전기용품은 특히 엄격히 관리됩니다.",
+    tags: ["KC인증", "통관", "규정"],
+  },
+  {
+    initial: "최", gradient: "from-amber-500 to-amber-400",
+    name: "최예린", time: "어제",
+    question: "LCL과 FCL 중 어떤 기준으로 선택해야 하나요?",
+    answer: "일반적으로 CBM 15~18 이상이면 FCL이 유리합니다. LCL은 혼재 비용과 리드타임 증가를 감안해야 합니다.",
+    tags: ["LCL", "FCL", "해상운송"],
+  },
+];
+
+const SCHEDULES = [
+  {
+    gradient: "from-blue-600 to-blue-500",
+    date: "2025년 2월 15일 (토) 10:00~18:00",
+    title: "수입 창업 1일 집중 부트캠프",
+    location: "서울 강남구 역삼동 셀러노트 교육센터",
+    instructor: "김태호 강사 외 3인",
+    price: "1인 298,000원 (점심·교재 포함)",
+    seats: 8, total: 30, pct: 73,
+  },
+  {
+    gradient: "from-violet-600 to-violet-500",
+    date: "2025년 3월 8일 (토) 13:00~17:00",
+    title: "통관·관세 실무 워크숍",
+    location: "서울 마포구 홍대 교육장",
+    instructor: "이정민 관세사",
+    price: "1인 148,000원",
+    seats: 18, total: 25, pct: 28,
+  },
+  {
+    gradient: "from-indigo-600 to-indigo-500",
+    date: "2025년 3월 22일 (토) 10:00~17:00",
+    title: "중국 소싱 & 협상 마스터클래스",
+    location: "경기도 성남시 판교 테크노밸리",
+    instructor: "박소연 소싱 전문가",
+    price: "1인 248,000원 (교재 포함)",
+    seats: 22, total: 35, pct: 37,
+  },
+];
+
+const INSTRUCTORS = [
+  { gradient: "from-blue-600 to-blue-400", name: "김태호", role: "수입 무역 전문가", desc: "15년간 수입 무역 실무 경력. 전 삼성물산 무역팀장. 연간 수입 규모 500억 경험 보유." },
+  { gradient: "from-violet-600 to-violet-400", name: "이정민", role: "관세사", desc: "공인 관세사 10년 경력. 연간 3,000건 이상 통관 처리. FTA 세율 절감 전문." },
+  { gradient: "from-emerald-600 to-emerald-400", name: "박소연", role: "중국 소싱 전문가", desc: "광저우·이우 현지 10년 거주. 500개 이상 공장 직접 방문 및 협상 경험 보유." },
+  { gradient: "from-amber-500 to-amber-300", name: "정우석", role: "물류·포워딩 전문가", desc: "전 글로비스 포워딩팀. 해상·항공·육상 통합 물류 전문. 운임 협상 노하우 강의." },
+];
+
+const REVIEWS = [
+  { initial: "오", gradient: "from-blue-600 to-blue-400", text: "무역에 완전 초보였는데 A to Z 강의 하나로 실제 수입 첫 오더까지 성공했어요. 강의 내용이 현실적이고 바로 써먹을 수 있어서 너무 좋았습니다!", name: "오지은", course: "수입 비즈니스 완전 정복 수강" },
+  { initial: "한", gradient: "from-violet-600 to-violet-400", text: "관세 환급 제도를 몰랐는데 이정민 관세사님 강의 덕분에 연간 800만원 절감했습니다. 수강료 몇 배 이상의 가치가 있는 강의예요.", name: "한동훈", course: "통관·관세 실무 과정 수강" },
+  { initial: "강", gradient: "from-emerald-600 to-emerald-400", text: "오프라인 부트캠프에서 만난 수강생들과 공동구매 그룹까지 만들었어요. 강의 내용도 좋지만 네트워킹 효과가 정말 큽니다!", name: "강나연", course: "수입 창업 집중 부트캠프 참가" },
+  { initial: "서", gradient: "from-amber-500 to-amber-300", text: "중국 소싱 강의에서 배운 협상 전략으로 단가를 30% 낮췄어요. 박소연 강사님이 실제 협상 스크립트까지 주셔서 완전 실용적이었어요.", name: "서민호", course: "중국 소싱 전략 수강" },
+  { initial: "임", gradient: "from-rose-600 to-rose-400", text: "라이브 강의가 정말 좋아요. 질문하면 바로 답변해주시고, 사례도 풍부해서 지루할 틈이 없어요. VOD와 병행해서 쓰면 완벽합니다.", name: "임재원", course: "FOB·CIF 인코텀즈 LIVE 수강" },
+  { initial: "윤", gradient: "from-indigo-600 to-indigo-400", text: "커뮤니티 Q&A가 진짜 보물이에요. 강사님들이 직접 답변해 주시고, 다른 수강생들의 경험도 엄청난 공부가 됩니다. 적극 추천해요!", name: "윤서현", course: "무역 서류 완벽 이해 수강" },
+];
+
+// ─── Component ────────────────────────────────────────────────
+
 export default function Home() {
+  const [activeFilter, setActiveFilter] = useState("전체");
+
+  const filteredCourses =
+    activeFilter === "전체" ? COURSES
+    : activeFilter === "LIVE" ? COURSES.filter((c) => c.badge === "LIVE")
+    : COURSES.filter((c) => c.category === activeFilter);
+
   return (
     <div className="bg-white text-gray-900">
 
-      {/* ── Section 1: Hero ── */}
-      <section className="relative min-h-[88vh] flex items-center bg-gradient-to-br from-gray-950 via-blue-950 to-gray-900 overflow-hidden">
-        {/* bg decoration */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(59,130,246,0.18),transparent)]" />
-        <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-3xl" />
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28">
-          <motion.p
-            className="text-blue-400 text-sm font-semibold tracking-widest uppercase mb-6"
-            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-          >
-            Sellernote
-          </motion.p>
-          <motion.h1
-            className="text-5xl md:text-7xl font-bold text-white leading-[1.08] tracking-tight mb-8 max-w-3xl"
-            initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}
-          >
-            무역을<br />쉽게 만들고<br />
-            <span className="text-blue-400">있습니다</span>
-          </motion.h1>
-          <motion.p
-            className="text-gray-300 text-lg md:text-xl leading-relaxed max-w-xl mb-12"
-            initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            복잡하고, 어렵고, 멀게 느껴지던 무역의 장벽을 허물어<br className="hidden md:block" />
-            누구나 무역에 도전할 수 있는 세상을 만듭니다.
-          </motion.p>
+      {/* ── Hero ── */}
+      <section className="relative min-h-[90vh] flex items-center justify-center text-center overflow-hidden bg-gradient-to-b from-blue-50 via-white to-white">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-blue-100/50 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative z-10 max-w-3xl mx-auto px-4 py-28">
           <motion.div
-            className="flex flex-col sm:flex-row gap-4"
-            initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
+            className="inline-flex items-center gap-2 bg-white border border-blue-100 rounded-full px-4 py-1.5 text-sm font-semibold text-blue-600 shadow-sm mb-6"
+            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
           >
-            <Link
-              href="/register"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-full transition-all hover:shadow-lg hover:shadow-blue-500/20 hover:-translate-y-0.5"
-            >
-              무료로 시작하기 <ArrowRight size={16} />
-            </Link>
+            <Ship size={14} /> 수입 운송 전문 No.1 플랫폼
+          </motion.div>
+
+          <motion.h1
+            className="text-4xl sm:text-5xl md:text-6xl font-black leading-[1.15] mb-5"
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            수입 운송, 이제<br />
+            <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">셀러노트</span>로 시작하세요
+          </motion.h1>
+
+          <motion.p
+            className="text-gray-500 text-lg leading-relaxed mb-8"
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            FOB부터 통관, 물류 협상까지 — 수입 비즈니스의 모든 것을<br className="hidden sm:block" />
+            온·오프라인 전문 강의로 배워보세요.
+          </motion.p>
+
+          <motion.div
+            className="flex gap-3 justify-center flex-wrap"
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}
+          >
             <Link
               href="/courses"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 border border-white/20 text-white font-semibold rounded-full hover:bg-white/10 transition-all"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full shadow-lg shadow-blue-200 transition-all hover:-translate-y-0.5"
             >
-              강의 둘러보기
+              <GraduationCap size={16} /> 무료 강의 보기
+            </Link>
+            <a
+              href="#offline"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-blue-200 hover:border-blue-400 text-blue-600 font-semibold rounded-full transition-all hover:-translate-y-0.5"
+            >
+              <Calendar size={16} /> 오프라인 일정
+            </a>
+          </motion.div>
+
+          {/* Stats */}
+          <motion.div
+            className="flex gap-10 justify-center flex-wrap mt-14 pt-10 border-t border-gray-100"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.5 }}
+          >
+            {[
+              { num: "2,400+", label: "수강생" },
+              { num: "48개", label: "강의 커리큘럼" },
+              { num: "4.9★", label: "평균 만족도" },
+              { num: "12명", label: "전문 강사진" },
+            ].map((s) => (
+              <div key={s.label} className="text-center">
+                <div className="text-2xl font-black text-blue-600">{s.num}</div>
+                <div className="text-xs text-gray-400 mt-0.5">{s.label}</div>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── Courses ── */}
+      <section id="courses" className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div {...fadeUp()} className="mb-8">
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full mb-3">
+              <BookOpen size={11} /> 강의 목록
+            </span>
+            <h2 className="text-3xl font-black mb-2">수입 운송의 모든 과정을<br />체계적으로 배운다</h2>
+            <p className="text-gray-500 mb-6">VOD 강의와 실시간 라이브로 언제 어디서나 학습하세요</p>
+            {/* Filter */}
+            <div className="flex gap-2 flex-wrap">
+              {FILTERS.map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setActiveFilter(f)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-semibold border-2 transition-all ${
+                    activeFilter === f
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600"
+                  }`}
+                >
+                  {f === "LIVE" ? "🔴 LIVE" : f}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredCourses.map((course, i) => (
+              <motion.div key={course.id} {...fadeUp(i * 0.07)}>
+                <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer h-full flex flex-col">
+                  <div className={`h-40 bg-gradient-to-br ${course.gradient} flex items-center justify-center relative`}>
+                    <course.icon size={52} className="text-white/30" />
+                    <span className={`absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-lg text-white ${course.badge === "LIVE" ? "bg-red-500" : "bg-black/30"}`}>
+                      {course.badge === "LIVE" ? "🔴 LIVE" : "VOD"}
+                    </span>
+                  </div>
+                  <div className="p-5 flex flex-col flex-1">
+                    <div className="text-xs font-bold text-blue-600 mb-1">{course.level}</div>
+                    <h3 className="font-bold text-sm leading-snug mb-3 flex-1">{course.title}</h3>
+                    <div className="flex gap-4 text-xs text-gray-400 mb-4">
+                      <span className="flex items-center gap-1"><Clock size={11} /> {course.duration}</span>
+                      <span className="flex items-center gap-1"><Users size={11} /> {course.students}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className={`font-black text-lg ${course.free ? "text-blue-600" : "text-gray-900"}`}>{course.price}</span>
+                      <Link
+                        href="/courses"
+                        className="text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 rounded-full transition-colors"
+                      >
+                        수강신청
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Blog ── */}
+      <section id="blog" className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div {...fadeUp()} className="mb-8">
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full mb-3">
+              <BookOpen size={11} /> 자료실 & 블로그
+            </span>
+            <h2 className="text-3xl font-black mb-2">실무에 바로 쓰는<br />수입 운송 지식</h2>
+            <p className="text-gray-500">최신 무역 동향과 실전 노하우를 무료로 확인하세요</p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {BLOGS.map((blog, i) => (
+              <motion.div key={blog.title} {...fadeUp(i * 0.07)}>
+                <div className="border border-gray-100 rounded-2xl p-5 hover:border-blue-200 hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer h-full flex flex-col">
+                  <div className={`w-11 h-11 ${blog.bg} rounded-xl flex items-center justify-center mb-4 shrink-0`}>
+                    <blog.icon size={20} className={blog.color} />
+                  </div>
+                  <div className="text-xs font-bold text-blue-600 mb-1">{blog.category}</div>
+                  <h3 className="font-bold text-sm leading-snug mb-2">{blog.title}</h3>
+                  <p className="text-xs text-gray-500 leading-relaxed flex-1">{blog.desc}</p>
+                  <div className="text-xs text-gray-300 mt-4">{blog.date}</div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Community ── */}
+      <section id="community" className="py-20 bg-blue-50/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div {...fadeUp()} className="mb-8">
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-white border border-blue-100 px-3 py-1 rounded-full mb-3">
+              <MessageCircle size={11} /> 커뮤니티
+            </span>
+            <h2 className="text-3xl font-black mb-2">함께 성장하는<br />셀러노트 커뮤니티</h2>
+            <p className="text-gray-500">수강생 간 Q&A와 네트워킹으로 실력을 키우세요</p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            {QAS.map((qa, i) => (
+              <motion.div key={qa.name} {...fadeUp(i * 0.07)}>
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${qa.gradient} flex items-center justify-center text-white font-bold text-sm shrink-0`}>
+                      {qa.initial}
+                    </div>
+                    <div>
+                      <div className="font-bold text-sm">{qa.name}</div>
+                      <div className="text-xs text-gray-400">{qa.time}</div>
+                    </div>
+                  </div>
+                  <p className="text-sm font-semibold mb-2 text-gray-800">Q. {qa.question}</p>
+                  <p className="text-xs text-gray-500 leading-relaxed">A. {qa.answer}</p>
+                  <div className="flex gap-1.5 mt-3 flex-wrap">
+                    {qa.tags.map((tag) => (
+                      <span key={tag} className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{tag}</span>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div {...fadeUp(0.2)} className="text-center">
+            <Link
+              href="/register"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full shadow-lg shadow-blue-200 transition-all hover:-translate-y-0.5"
+            >
+              <MessageCircle size={15} /> 커뮤니티 참여하기
             </Link>
           </motion.div>
         </div>
       </section>
 
-      {/* ── Section 3: Stats ── */}
-      <section className="py-16 bg-blue-600">
+      {/* ── Offline ── */}
+      <section id="offline" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[
-              { icon: BookOpen, value: "15,000+", label: "누적 수강생" },
-              { icon: TrendingUp, value: "2,300+", label: "무역 창업 성공" },
-              { icon: Star, value: "98%", label: "수강생 만족도" },
-              { icon: Package, value: "50+", label: "실무 강의 콘텐츠" },
-            ].map((s, i) => (
-              <motion.div key={i} {...fadeUp(i * 0.08)} className="text-center text-white">
-                <s.icon size={24} className="mx-auto mb-3 opacity-80" />
-                <p className="text-3xl md:text-4xl font-bold mb-1">{s.value}</p>
-                <p className="text-blue-100 text-sm">{s.label}</p>
+          <motion.div {...fadeUp()} className="mb-8">
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full mb-3">
+              <Calendar size={11} /> 오프라인 강의
+            </span>
+            <h2 className="text-3xl font-black mb-2">현장에서 배우는<br />실전 집중 과정</h2>
+            <p className="text-gray-500">강사와 직접 만나 심화 실습과 네트워킹까지 한 번에</p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {SCHEDULES.map((s, i) => (
+              <motion.div key={s.title} {...fadeUp(i * 0.1)}>
+                <div className="border border-gray-100 rounded-2xl overflow-hidden hover:shadow-md hover:-translate-y-1 transition-all h-full flex flex-col">
+                  <div className={`bg-gradient-to-br ${s.gradient} p-5 text-white`}>
+                    <div className="flex items-center gap-1.5 text-xs opacity-80 mb-1.5">
+                      <Calendar size={11} /> {s.date}
+                    </div>
+                    <h3 className="font-black text-base">{s.title}</h3>
+                  </div>
+                  <div className="p-5 flex flex-col flex-1">
+                    <div className="space-y-2 text-xs text-gray-500 mb-5">
+                      <div className="flex items-start gap-1.5"><MapPin size={11} className="shrink-0 mt-0.5" /> {s.location}</div>
+                      <div className="flex items-start gap-1.5"><GraduationCap size={11} className="shrink-0 mt-0.5" /> {s.instructor}</div>
+                      <div className="flex items-start gap-1.5"><Award size={11} className="shrink-0 mt-0.5" /> {s.price}</div>
+                    </div>
+                    <div className="flex items-center gap-2 mb-5 mt-auto">
+                      <span className="text-xs text-gray-400 shrink-0">잔여 {s.seats}/{s.total}</span>
+                      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${s.pct}%` }} />
+                      </div>
+                      <span className="text-xs text-gray-400 shrink-0">{s.pct}%</span>
+                    </div>
+                    <button className="w-full py-2.5 bg-gray-900 hover:bg-blue-600 text-white text-sm font-bold rounded-xl transition-colors">
+                      신청하기
+                    </button>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Section 2: Who We Are ── */}
-      <section className="py-24 bg-white" id="about">
+      {/* ── Instructors ── */}
+      <section id="instructors" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div {...fadeUp()} className="mb-16">
-            <p className="text-blue-600 font-semibold text-sm tracking-widest uppercase mb-3">Who We Are</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 max-w-2xl">
-              우리는 무역의 문턱을<br />낮추는 사람들입니다
-            </h2>
-            <p className="text-gray-600 text-lg max-w-2xl leading-relaxed">
-              왜 수입무역에 집중할까요? 수출 시장은 대기업 중심입니다.<br />
-              삼성, LG, 현대 같은 대기업들이 이미 탄탄한 인프라와 전문 인력을 갖추고 있죠.
+          <motion.div {...fadeUp()} className="mb-8">
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full mb-3">
+              <GraduationCap size={11} /> 강사 소개
+            </span>
+            <h2 className="text-3xl font-black mb-2">현직 전문가가<br />직접 가르칩니다</h2>
+            <p className="text-gray-500">이론이 아닌 수천 건의 실전 경험을 바탕으로 강의합니다</p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {INSTRUCTORS.map((inst, i) => (
+              <motion.div key={inst.name} {...fadeUp(i * 0.1)}>
+                <div className="bg-white rounded-2xl p-6 text-center shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-1 transition-all">
+                  <div className={`w-20 h-20 mx-auto rounded-full bg-gradient-to-br ${inst.gradient} flex items-center justify-center text-white text-2xl font-black mb-4`}>
+                    {inst.name[0]}
+                  </div>
+                  <div className="font-black text-base mb-1">{inst.name}</div>
+                  <div className="text-xs font-bold text-blue-600 mb-3">{inst.role}</div>
+                  <p className="text-xs text-gray-500 leading-relaxed">{inst.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Reviews ── */}
+      <section id="reviews" className="py-20 bg-gray-950 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div {...fadeUp()} className="mb-8">
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-yellow-400 bg-yellow-400/10 border border-yellow-400/20 px-3 py-1 rounded-full mb-3">
+              <Star size={11} /> 수강생 후기
+            </span>
+            <h2 className="text-3xl font-black mb-2">수강생들이<br />직접 말합니다</h2>
+            <p className="text-gray-400">실제 수강 후 변화된 사례들을 확인하세요</p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {REVIEWS.map((rev, i) => (
+              <motion.div key={rev.name} {...fadeUp(i * 0.07)}>
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/8 transition-all h-full flex flex-col">
+                  <div className="text-yellow-400 text-sm mb-3 tracking-wider">★★★★★</div>
+                  <p className="text-sm text-gray-300 leading-relaxed flex-1">{rev.text}</p>
+                  <div className="flex items-center gap-2.5 mt-5">
+                    <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${rev.gradient} flex items-center justify-center text-white text-xs font-bold shrink-0`}>
+                      {rev.initial}
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold">{rev.name}</div>
+                      <div className="text-xs text-gray-500">{rev.course}</div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ── */}
+      <section className="py-20 bg-gradient-to-r from-blue-600 to-violet-600 text-white text-center">
+        <div className="max-w-2xl mx-auto px-4">
+          <motion.div {...fadeUp()}>
+            <h2 className="text-3xl font-black mb-3">지금 시작하면 무료 강의 제공!</h2>
+            <p className="text-white/80 text-base leading-relaxed mb-8">
+              수입 비즈니스의 첫 걸음을 셀러노트와 함께 시작하세요.<br />
+              오늘 가입하시면 입문 VOD 강의를 무료로 드립니다.
             </p>
-          </motion.div>
-
-          {/* 수출 vs 수입 비교 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
-            <motion.div {...fadeUp(0.1)} className="rounded-2xl border border-gray-100 p-8 bg-gray-50">
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 block">수출 시장 (대기업 중심)</span>
-              <ul className="space-y-3">
-                {["체계화된 프로세스", "전문 물류망", "풍부한 자본력으로 이미 효율적인 시스템 구축"].map((t) => (
-                  <li key={t} className="flex items-start gap-2 text-gray-600 text-sm">
-                    <CheckCircle size={15} className="text-gray-400 mt-0.5 shrink-0" /> {t}
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-            <motion.div {...fadeUp(0.15)} className="rounded-2xl border-2 border-blue-200 p-8 bg-blue-50">
-              <span className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-4 block">수입 시장 (초보 사업자 다수)</span>
-              <ul className="space-y-3">
-                {["1인 셀러, 스타트업, 소상공인", "정보도 인프라도 부족한 상태에서 홀로 분투"].map((t) => (
-                  <li key={t} className="flex items-start gap-2 text-gray-700 text-sm">
-                    <CheckCircle size={15} className="text-blue-500 mt-0.5 shrink-0" /> {t}
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          </div>
-
-          {/* Pain points */}
-          <motion.p {...fadeUp(0.1)} className="text-gray-900 font-bold text-lg mb-6">수입무역 사업자들이 겪는 진짜 페인 포인트</motion.p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            {[
-              { icon: AlertTriangle, title: "정보의 부재", desc: "어디서부터 어떻게 시작해야 할지 막막함" },
-              { icon: Ship, title: "물류의 복잡함", desc: "소량 수입, 불투명한 비용, 복잡한 절차" },
-              { icon: LayoutGrid, title: "운영의 비효율", desc: "엑셀과 장부, 수기로 재고, 계속되는 실수" },
-            ].map((item, i) => (
-              <motion.div key={i} {...fadeUp(0.1 + i * 0.08)} className="flex gap-4 p-6 rounded-2xl bg-gray-50 border border-gray-100">
-                <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
-                  <item.icon size={18} />
-                </div>
-                <div>
-                  <p className="font-bold text-gray-900 mb-1">{item.title}</p>
-                  <p className="text-gray-500 text-sm">{item.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-          <motion.p {...fadeUp(0.2)} className="text-blue-600 font-semibold text-base">
-            그래서 우리는 수입무역에 집중합니다. 더 많은 사람들에게, 더 큰 도움이 필요한 곳에.
-          </motion.p>
-        </div>
-      </section>
-
-      {/* ── Section 4: Value Props ── */}
-      <section className="py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="space-y-8">
-            {[
-              {
-                num: "01",
-                title: "처음 무역을 시작하는 사람도 3개월 안에 첫 수입을 경험합니다",
-                desc: "복잡한 수입 서류, 어려운 관세 용어, 막막한 통관 절차. 우리는 이 모든 것을 체계적인 수입무역 커리큘럼으로 정리했습니다. 수강생의 87%가 교육 수료 후 3개월 내 첫 수입을 시작합니다.",
-              },
-              {
-                num: "02",
-                title: "물류비를 평균 23% 절감시켜드립니다",
-                desc: "쉽다(ShipDa)를 통해 복잡한 수입 포워딩을 디지털화했습니다. 견적 비교부터 실시간 화물 추적까지, 투명한 프로세스로 불필요한 비용을 줄이고 시간을 절약합니다.",
-              },
-              {
-                num: "03",
-                title: "발주 관리 시간을 1/5로 단축합니다",
-                desc: "위딜라이즈(WeDealize)는 해외 소싱부터 수입 발주, 재고 관리까지 모든 과정을 하나의 플랫폼에서 해결합니다. 엑셀과 수작업에서 벗어나 본업에 집중하세요.",
-              },
-            ].map((item, i) => (
-              <motion.div
-                key={i} {...fadeUp(i * 0.1)}
-                className="flex flex-col md:flex-row gap-8 p-8 bg-white rounded-2xl border border-gray-100 shadow-sm"
+            <div className="flex gap-3 justify-center flex-wrap">
+              <Link
+                href="/register"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-white text-blue-600 font-bold rounded-full shadow-lg hover:-translate-y-0.5 transition-all"
               >
-                <span className="text-5xl font-black text-blue-100 shrink-0 leading-none">{item.num}</span>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">{item.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{item.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Section 6: The Problem ── */}
-      <section className="py-24 bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div {...fadeUp()} className="mb-16">
-            <p className="text-blue-400 font-semibold text-sm tracking-widest uppercase mb-3">The Problem</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-white">무역은 왜 어려웠을까요?</h2>
-          </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { icon: FileText, title: "복잡한 무역 서류", desc: "인보이스, 패킹리스트, B/L, 원산지증명서... 수십 가지 서류가 머리를 아프게 합니다." },
-              { icon: AlertTriangle, title: "무역 용어의 장벽", desc: "FOB, CIF, HS Code, 관세율... 전문 용어의 벽이 무역 진입을 막습니다." },
-              { icon: DollarSign, title: "불투명한 무역 비용", desc: "운송비, 관세, 부가세, 창고비... 비용이 어디서 얼마나 나가는지 알 수 없습니다." },
-            ].map((item, i) => (
-              <motion.div key={i} {...fadeUp(i * 0.1)} className="p-8 rounded-2xl bg-white/5 border border-white/10">
-                <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 mb-5">
-                  <item.icon size={22} />
-                </div>
-                <h3 className="text-white font-bold text-lg mb-3">{item.title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Section 7: Mission ── */}
-      <section className="py-24 bg-blue-600">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.p {...fadeUp()} className="text-blue-200 text-sm font-semibold mb-4">그래서 우리는 시작했습니다</motion.p>
-          <motion.h2 {...fadeUp(0.1)} className="text-4xl md:text-6xl font-black text-white mb-4">
-            "무역을 쉽게 만든다"
-          </motion.h2>
-          <motion.p {...fadeUp(0.15)} className="text-blue-100 text-xl mb-16">이것이 셀러노트의 미션입니다</motion.p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { icon: GraduationCap, title: "쉽게 배우고", desc: "체계적인 교육으로 누구나" },
-              { icon: Ship, title: "쉽게 들여오고", desc: "디지털 포워딩으로 간편하게" },
-              { icon: LayoutGrid, title: "쉽게 관리한다", desc: "올인원 솔루션으로 효율적으로" },
-            ].map((item, i) => (
-              <motion.div key={i} {...fadeUp(0.2 + i * 0.08)} className="p-8 rounded-2xl bg-white/15 backdrop-blur-sm">
-                <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-white mx-auto mb-4">
-                  <item.icon size={22} />
-                </div>
-                <h3 className="text-white font-bold text-xl mb-2">{item.title}</h3>
-                <p className="text-blue-100 text-sm">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Section 5: Journey ── */}
-      <section className="py-24 bg-white" id="journey">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div {...fadeUp()} className="mb-16">
-            <p className="text-blue-600 font-semibold text-sm tracking-widest uppercase mb-3">Our Journey</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">셀러노트의 발자취</h2>
-          </motion.div>
-          <div className="relative">
-            <div className="absolute left-[72px] top-0 bottom-0 w-px bg-gray-200" />
-            <div className="space-y-10">
-              {JOURNEY.map((item, i) => (
-                <motion.div key={i} {...fadeUp(i * 0.05)} className="flex gap-8">
-                  <div className="w-[72px] shrink-0 text-right">
-                    <span className="text-xs font-bold text-blue-600 leading-tight block">{item.date}</span>
-                  </div>
-                  <div className="relative pb-2">
-                    <div className="absolute -left-[29px] top-1 w-3 h-3 rounded-full bg-blue-600 border-2 border-white shadow-sm" />
-                    <h4 className="font-bold text-gray-900 mb-1">{item.title}</h4>
-                    <p className="text-gray-500 text-sm">{item.desc}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-          <motion.p {...fadeUp(0.2)} className="mt-14 text-gray-500 text-sm text-center leading-relaxed">
-            셀러노트는 오늘도 무역을 더 쉽게 만들기 위해 한 걸음씩 나아갑니다.<br />
-            어제보다 오늘, 오늘보다 내일 더 쉬운 무역을 위해. 그 발자취는 계속됩니다.
-          </motion.p>
-        </div>
-      </section>
-
-      {/* ── Section 8: Vision ── */}
-      <section className="py-24 bg-gray-50" id="vision">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div {...fadeUp()} className="mb-16">
-            <p className="text-blue-600 font-semibold text-sm tracking-widest uppercase mb-3">Our Vision</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">셀러노트가 만들어갈<br />새로운 무역</h2>
-          </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { num: "01", icon: Target, title: "무역 진입 장벽 제로", desc: "누구나 무역을 시작할 수 있도록 체계적인 교육과 도구를 제공합니다." },
-              { num: "02", icon: Layers, title: "수입 원스톱 솔루션", desc: "교육, 운송, 관리까지 하나의 생태계에서 해결합니다." },
-              { num: "03", icon: User, title: "1인 무역 셀러의 성장", desc: "개인 셀러도 해외 직수입으로 경쟁력을 가질 수 있도록 지원합니다." },
-            ].map((item, i) => (
-              <motion.div key={i} {...fadeUp(i * 0.1)} className="p-8 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                <div className="flex items-start gap-4 mb-4">
-                  <span className="text-3xl font-black text-blue-100 leading-none">{item.num}</span>
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
-                    <item.icon size={18} />
-                  </div>
-                </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">{item.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Section 9: Services ── */}
-      <section className="py-24 bg-white" id="services">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div {...fadeUp()} className="mb-16">
-            <p className="text-blue-600 font-semibold text-sm tracking-widest uppercase mb-3">Our Services</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">셀러노트 생태계</h2>
-          </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                icon: GraduationCap,
-                name: "셀러노트",
-                tag: "Education",
-                desc: "수입무역 & 운송에 대한 실무 중심 강의. 현직 실무자가 전하는 생생한 노하우로 수입 통관, 물류, 정산까지 A to Z를 배웁니다.",
-              },
-              {
-                icon: Ship,
-                name: "쉽다 (ShipDa)",
-                tag: "Logistics",
-                desc: "디지털 포워딩 서비스. 수출입 운송, 외환 송금, 풀필먼트까지 물류의 모든 것을 디지털로 해결합니다.",
-              },
-              {
-                icon: LayoutGrid,
-                name: "위딜라이즈 (WeDealize)",
-                tag: "SaaS",
-                desc: "발주 & 주문 관리 Vertical SaaS. 해외 소싱, 발주 관리, 주문 통합, 재고 및 정산 자동화를 하나의 플랫폼에서.",
-              },
-            ].map((item, i) => (
-              <motion.div
-                key={i} {...fadeUp(i * 0.1)}
-                whileHover={{ y: -6, transition: { duration: 0.2 } }}
-                className="group p-8 rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-shadow flex flex-col"
+                <GraduationCap size={16} /> 지금 무료 가입하기
+              </Link>
+              <Link
+                href="/courses"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 border-2 border-white/30 hover:bg-white/20 text-white font-bold rounded-full transition-all hover:-translate-y-0.5"
               >
-                <div className="w-14 h-14 rounded-2xl bg-blue-50 group-hover:bg-blue-600 flex items-center justify-center text-blue-600 group-hover:text-white transition-colors mb-5">
-                  <item.icon size={26} />
-                </div>
-                <span className="text-xs font-bold text-blue-500 uppercase tracking-wide mb-2">{item.tag}</span>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">{item.name}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed flex-grow">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Section 10: API ── */}
-      <section className="py-24 bg-gray-950">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div {...fadeUp()} className="mb-16">
-            <p className="text-blue-400 font-semibold text-sm tracking-widest uppercase mb-3">For Developers</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">무역 데이터 API 프로토콜</h2>
-            <p className="text-gray-400 text-lg max-w-xl">
-              셀러노트의 무역 기술을 구독형 API로 제공합니다.<br />
-              개발자 친화적인 JSON 형태로 무역 업무를 자동화하세요.
-            </p>
-          </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-            {[
-              {
-                icon: FileText,
-                title: "무역서류 파싱 API",
-                desc: "인보이스, 패킹리스트, B/L, 원산지증명서 등 각종 무역서류를 개발 가능한 JSON 형태로 자동 변환합니다.",
-                tags: [],
-              },
-              {
-                icon: Zap,
-                title: "워크플로우 자동화 API",
-                desc: "수입 통관, 발주 관리, 재고 연동 등 무역 업무 프로세스를 API로 자동화하여 시스템에 통합할 수 있습니다.",
-                tags: ["통관 자동화", "발주 연동", "재고 동기화", "정산 자동화"],
-              },
-            ].map((item, i) => (
-              <motion.div key={i} {...fadeUp(i * 0.1)} className="p-8 rounded-2xl bg-white/5 border border-white/10">
-                <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 mb-5">
-                  <item.icon size={22} />
-                </div>
-                <h3 className="text-white font-bold text-xl mb-3">{item.title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed mb-4">{item.desc}</p>
-                {item.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {item.tags.map((tag) => (
-                      <span key={tag} className="text-xs px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-300">{tag}</span>
-                    ))}
-                  </div>
-                )}
-              </motion.div>
-            ))}
-          </div>
-          <motion.div {...fadeUp(0.2)} className="flex items-center gap-3 text-gray-400 text-sm">
-            <Mail size={16} className="text-blue-400 shrink-0" />
-            API 도입 문의:&nbsp;
-            <a href="mailto:api@seller-note.com" className="text-blue-400 hover:text-blue-300 transition-colors">
-              api@seller-note.com
-            </a>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── Section 11: CTA ── */}
-      <section className="py-24 bg-white">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            {...fadeUp()}
-            className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-3xl p-12 md:p-16 text-white shadow-xl shadow-blue-500/20 relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-            <div className="relative z-10">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                무역, 이제 쉽게 시작하세요
-              </h2>
-              <p className="text-blue-100 text-lg mb-10">
-                셀러노트와 함께라면 1인 무역도 충분히 가능합니다.<br />
-                현재 수입무역에 특화된 서비스를 제공합니다.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link
-                  href="/register"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-blue-600 font-bold rounded-full hover:bg-gray-50 transition-colors shadow-md"
-                >
-                  무료로 시작하기 <ArrowRight size={16} />
-                </Link>
-                <Link
-                  href="/courses"
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 border-2 border-white/40 text-white font-bold rounded-full hover:bg-white/10 transition-colors"
-                >
-                  강의 둘러보기
-                </Link>
-              </div>
+                강의 목록 보기 <ArrowRight size={15} />
+              </Link>
             </div>
           </motion.div>
         </div>
       </section>
 
       {/* ── Footer ── */}
-      <footer className="bg-gray-950 text-gray-400 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-10">
-            <div>
-              <p className="text-white font-bold text-lg mb-2">Sellernote</p>
-              <p className="text-sm max-w-xs leading-relaxed">무역을 쉽게 만드는 사람들.<br />수입무역 교육 · 물류 · SaaS 생태계</p>
-            </div>
-            <div className="flex flex-wrap gap-x-12 gap-y-4 text-sm">
-              <div className="space-y-2">
-                <p className="text-gray-500 font-semibold text-xs uppercase tracking-wide mb-3">서비스</p>
-                <p className="hover:text-white cursor-pointer transition-colors">셀러노트 강의</p>
-                <p className="hover:text-white cursor-pointer transition-colors">쉽다 (ShipDa)</p>
-                <p className="hover:text-white cursor-pointer transition-colors">위딜라이즈 (WeDealize)</p>
-              </div>
-              <div className="space-y-2">
-                <p className="text-gray-500 font-semibold text-xs uppercase tracking-wide mb-3">회사</p>
-                <Link href="/" className="block hover:text-white transition-colors">회사소개</Link>
-                <Link href="/inquiry" className="block hover:text-white transition-colors">문의하기</Link>
-                <a href="mailto:api@seller-note.com" className="hover:text-white transition-colors block">API 문의</a>
-              </div>
-            </div>
-          </div>
-          <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
-            <p>© 2024 Sellernote Inc. 모든 권리 보유.</p>
-            <p>api@seller-note.com</p>
-          </div>
-        </div>
+      <footer className="bg-gray-950 border-t border-white/5 py-10 text-center">
+        <div className="text-white font-black text-lg mb-1">Sellernote</div>
+        <p className="text-gray-500 text-sm">© 2025 주식회사 셀러노트. All rights reserved.</p>
       </footer>
 
     </div>
