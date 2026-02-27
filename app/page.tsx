@@ -4,467 +4,476 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import {
-  Ship, Package, FileText, Globe, ShieldCheck, Handshake,
-  BookOpen, TrendingUp, Leaf, ShoppingCart, Scale, Lightbulb,
-  MessageCircle, Calendar, MapPin, Star, Users,
-  GraduationCap, Award, Clock, ArrowRight,
+  Ship, Package, FileText, ShieldCheck, Handshake,
+  Globe, BookOpen, TrendingUp, Leaf, ShoppingCart, Scale, Lightbulb,
+  Star, Users, GraduationCap, Clock, ArrowRight,
+  ChevronRight, Sparkles, BarChart2, FileCheck, Truck, Search,
 } from "lucide-react";
 import { courses } from "@/app/data/courses";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
-const COURSE_ICONS = [Ship, Package, ShieldCheck, Handshake, FileText, Globe];
-const ICON_MAP = Object.fromEntries(courses.map((c, i) => [c.id, COURSE_ICONS[i] ?? Ship]));
+// ─── 카테고리 ───────────────────────────────
+const CATEGORIES = [
+  { label: "전체", icon: Sparkles, id: "전체" },
+  { label: "입문", icon: BookOpen, id: "입문" },
+  { label: "무역 실무", icon: FileCheck, id: "무역 실무" },
+  { label: "물류·운송", icon: Truck, id: "물류·운송" },
+  { label: "통관·관세", icon: ShieldCheck, id: "통관·관세" },
+  { label: "LIVE", icon: TrendingUp, id: "LIVE" },
+];
 
-const FILTERS = ["전체", "입문", "무역 실무", "물류·운송", "통관·관세", "LIVE"];
-
-const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 24 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: "-60px" },
-  transition: { duration: 0.5, delay },
-});
-
-// ─── Data ────────────────────────────────────────────────────
-
+// ─── 블로그 ─────────────────────────────────
 const BLOGS = [
-  { icon: TrendingUp, bg: "bg-blue-50", color: "text-blue-600", category: "무역 동향", title: "2025년 해상 운임 동향과 수입업체 대응 전략", desc: "BDI 지수 변화와 컨테이너 운임 급등락의 원인을 분석하고 효과적인 대응 방법을 알아봅니다.", date: "2025.01.15" },
-  { icon: FileText, bg: "bg-violet-50", color: "text-violet-600", category: "무역 서류", title: "Letter of Credit 개설부터 네고까지 완벽 가이드", desc: "초보 수입업자가 가장 헷갈려하는 L/C 프로세스를 단계별로 쉽게 설명합니다.", date: "2025.01.08" },
-  { icon: Leaf, bg: "bg-emerald-50", color: "text-emerald-600", category: "통관·관세", title: "FTA 원산지 증명서 활용으로 관세 절감하는 법", desc: "한-미, 한-EU FTA 협정세율을 제대로 활용해 수입 비용을 줄이는 실전 방법을 공유합니다.", date: "2024.12.28" },
-  { icon: ShoppingCart, bg: "bg-amber-50", color: "text-amber-600", category: "소싱 전략", title: "알리바바 소싱 시 절대 하지 말아야 할 실수 10가지", desc: "수천 명의 수강생 사례를 통해 정리한 알리바바 소싱 실패 패턴과 예방법을 공개합니다.", date: "2024.12.20" },
-  { icon: Scale, bg: "bg-rose-50", color: "text-rose-600", category: "법규·규정", title: "수입 금지·제한 품목 완벽 정리 (2025년 최신판)", desc: "KC 인증, 식품검역, 전파법 등 국내 반입 시 주의해야 할 규정들을 품목별로 정리했습니다.", date: "2024.12.10" },
-  { icon: Lightbulb, bg: "bg-indigo-50", color: "text-indigo-600", category: "실전 사례", title: "월 매출 3억 달성한 수입업체의 물류 시스템 공개", desc: "셀러노트 수강 후 성공한 실제 창업자의 인터뷰와 핵심 물류 운영 노하우를 담았습니다.", date: "2024.12.03" },
+  { icon: TrendingUp, category: "무역 동향", title: "2025년 해상 운임 동향과 수입업체 대응 전략", date: "2025.01.15", readTime: "5분" },
+  { icon: FileText, category: "무역 서류", title: "Letter of Credit 개설부터 네고까지 완벽 가이드", date: "2025.01.08", readTime: "8분" },
+  { icon: Leaf, category: "통관·관세", title: "FTA 원산지 증명서 활용으로 관세 절감하는 법", date: "2024.12.28", readTime: "6분" },
+  { icon: ShoppingCart, category: "소싱 전략", title: "알리바바 소싱 시 절대 하지 말아야 할 실수 10가지", date: "2024.12.20", readTime: "7분" },
+  { icon: Scale, category: "법규·규정", title: "수입 금지·제한 품목 완벽 정리 (2025년 최신판)", date: "2024.12.10", readTime: "9분" },
+  { icon: Lightbulb, category: "실전 사례", title: "월 매출 3억 달성한 수입업체의 물류 시스템 공개", date: "2024.12.03", readTime: "10분" },
 ];
 
-const QAS = [
-  {
-    initial: "김", gradient: "from-blue-600 to-blue-400",
-    name: "김민준", time: "2시간 전",
-    question: "중국 공장에서 EXW로 오퍼받았는데 FOB로 전환하는 게 나을까요?",
-    answer: "물량 규모와 포워더 협상력에 따라 다릅니다. 초기에는 FOB가 관리 편의상 유리하지만, 물량이 쌓이면 EXW + 고정 포워더 조합이 비용 절감에 효과적입니다.",
-    tags: ["인코텀즈", "중국소싱", "물류비용"],
-  },
-  {
-    initial: "이", gradient: "from-violet-600 to-violet-400",
-    name: "이수진", time: "5시간 전",
-    question: "B/L 발행 후 선적 취소가 가능한가요? 페널티는 얼마나 되나요?",
-    answer: "B/L 발행 전 취소는 비교적 쉽지만 이후에는 복잡합니다. 선사마다 다르지만 통상 운임의 20~50% 취소 수수료가 발생합니다.",
-    tags: ["B/L", "선적취소", "수수료"],
-  },
-  {
-    initial: "박", gradient: "from-emerald-600 to-emerald-400",
-    name: "박지훈", time: "어제",
-    question: "KC 인증 없이 소량 수입하면 통관 거절되나요?",
-    answer: "품목에 따라 다릅니다. 개인 사용 목적의 소량은 통관 가능하나, 판매 목적이라면 KC 인증은 필수입니다. 전기용품은 특히 엄격히 관리됩니다.",
-    tags: ["KC인증", "통관", "규정"],
-  },
-  {
-    initial: "최", gradient: "from-amber-500 to-amber-400",
-    name: "최예린", time: "어제",
-    question: "LCL과 FCL 중 어떤 기준으로 선택해야 하나요?",
-    answer: "일반적으로 CBM 15~18 이상이면 FCL이 유리합니다. LCL은 혼재 비용과 리드타임 증가를 감안해야 합니다.",
-    tags: ["LCL", "FCL", "해상운송"],
-  },
-];
-
-const SCHEDULES = [
-  {
-    gradient: "from-blue-600 to-blue-500",
-    date: "2025년 2월 15일 (토) 10:00~18:00",
-    title: "수입 창업 1일 집중 부트캠프",
-    location: "서울 강남구 역삼동 셀러노트 교육센터",
-    instructor: "김태호 강사 외 3인",
-    price: "1인 298,000원 (점심·교재 포함)",
-    seats: 8, total: 30, pct: 73,
-  },
-  {
-    gradient: "from-violet-600 to-violet-500",
-    date: "2025년 3월 8일 (토) 13:00~17:00",
-    title: "통관·관세 실무 워크숍",
-    location: "서울 마포구 홍대 교육장",
-    instructor: "이정민 관세사",
-    price: "1인 148,000원",
-    seats: 18, total: 25, pct: 28,
-  },
-  {
-    gradient: "from-indigo-600 to-indigo-500",
-    date: "2025년 3월 22일 (토) 10:00~17:00",
-    title: "중국 소싱 & 협상 마스터클래스",
-    location: "경기도 성남시 판교 테크노밸리",
-    instructor: "박소연 소싱 전문가",
-    price: "1인 248,000원 (교재 포함)",
-    seats: 22, total: 35, pct: 37,
-  },
-];
-
+// ─── 강사 ────────────────────────────────────
 const INSTRUCTORS = [
-  { gradient: "from-blue-600 to-blue-400", name: "김태호", role: "수입 무역 전문가", desc: "15년간 수입 무역 실무 경력. 전 삼성물산 무역팀장. 연간 수입 규모 500억 경험 보유." },
-  { gradient: "from-violet-600 to-violet-400", name: "이정민", role: "관세사", desc: "공인 관세사 10년 경력. 연간 3,000건 이상 통관 처리. FTA 세율 절감 전문." },
-  { gradient: "from-emerald-600 to-emerald-400", name: "박소연", role: "중국 소싱 전문가", desc: "광저우·이우 현지 10년 거주. 500개 이상 공장 직접 방문 및 협상 경험 보유." },
-  { gradient: "from-amber-500 to-amber-300", name: "정우석", role: "물류·포워딩 전문가", desc: "전 글로비스 포워딩팀. 해상·항공·육상 통합 물류 전문. 운임 협상 노하우 강의." },
+  { gradient: "from-blue-500 to-blue-400", name: "김태호", role: "수입 무역 전문가", career: "전 삼성물산 무역팀장 · 15년", rating: 4.9, reviews: 312, courses: 4 },
+  { gradient: "from-violet-500 to-violet-400", name: "이정민", role: "공인 관세사", career: "관세사 10년 · 연간 3,000건+", rating: 4.9, reviews: 187, courses: 3 },
+  { gradient: "from-emerald-500 to-emerald-400", name: "박소연", role: "중국 소싱 전문가", career: "광저우·이우 현지 10년", rating: 4.8, reviews: 241, courses: 3 },
+  { gradient: "from-amber-500 to-amber-400", name: "정우석", role: "물류·포워딩 전문가", career: "전 글로비스 포워딩팀", rating: 4.8, reviews: 156, courses: 2 },
 ];
 
+// ─── 후기 ────────────────────────────────────
 const REVIEWS = [
-  { initial: "오", gradient: "from-blue-600 to-blue-400", text: "무역에 완전 초보였는데 A to Z 강의 하나로 실제 수입 첫 오더까지 성공했어요. 강의 내용이 현실적이고 바로 써먹을 수 있어서 너무 좋았습니다!", name: "오지은", course: "수입 비즈니스 완전 정복 수강" },
-  { initial: "한", gradient: "from-violet-600 to-violet-400", text: "관세 환급 제도를 몰랐는데 이정민 관세사님 강의 덕분에 연간 800만원 절감했습니다. 수강료 몇 배 이상의 가치가 있는 강의예요.", name: "한동훈", course: "통관·관세 실무 과정 수강" },
-  { initial: "강", gradient: "from-emerald-600 to-emerald-400", text: "오프라인 부트캠프에서 만난 수강생들과 공동구매 그룹까지 만들었어요. 강의 내용도 좋지만 네트워킹 효과가 정말 큽니다!", name: "강나연", course: "수입 창업 집중 부트캠프 참가" },
-  { initial: "서", gradient: "from-amber-500 to-amber-300", text: "중국 소싱 강의에서 배운 협상 전략으로 단가를 30% 낮췄어요. 박소연 강사님이 실제 협상 스크립트까지 주셔서 완전 실용적이었어요.", name: "서민호", course: "중국 소싱 전략 수강" },
-  { initial: "임", gradient: "from-rose-600 to-rose-400", text: "라이브 강의가 정말 좋아요. 질문하면 바로 답변해주시고, 사례도 풍부해서 지루할 틈이 없어요. VOD와 병행해서 쓰면 완벽합니다.", name: "임재원", course: "FOB·CIF 인코텀즈 LIVE 수강" },
-  { initial: "윤", gradient: "from-indigo-600 to-indigo-400", text: "커뮤니티 Q&A가 진짜 보물이에요. 강사님들이 직접 답변해 주시고, 다른 수강생들의 경험도 엄청난 공부가 됩니다. 적극 추천해요!", name: "윤서현", course: "무역 서류 완벽 이해 수강" },
+  { initial: "오", gradient: "from-blue-500 to-blue-400", text: "무역 완전 초보였는데 A to Z 강의 하나로 실제 수입 첫 오더까지 성공했어요. 강의가 현실적이고 바로 써먹을 수 있어요.", name: "오지은", course: "수입 비즈니스 완전 정복", rating: 5 },
+  { initial: "한", gradient: "from-violet-500 to-violet-400", text: "관세 환급 제도를 몰랐는데 이정민 관세사님 강의 덕분에 연간 800만원 절감했어요. 수강료 몇 배 가치가 있습니다.", name: "한동훈", course: "통관·관세 실무 과정", rating: 5 },
+  { initial: "강", gradient: "from-emerald-500 to-emerald-400", text: "협상 스크립트가 압권이었어요. 실제 협상에서 바로 쓰고 단가를 30% 낮췄습니다. 박소연 강사님 최고예요.", name: "강나연", course: "중국 소싱 전략", rating: 5 },
+  { initial: "서", gradient: "from-amber-500 to-amber-400", text: "수입 물류 개념이 이렇게 쉬운 거였나요? 복잡하다고 생각했는데 정우석 강사님 설명 들으니 바로 이해됐어요.", name: "서민호", course: "물류·포워딩 실무", rating: 5 },
 ];
 
-// ─── Component ────────────────────────────────────────────────
+const levelColor: Record<string, string> = {
+  입문: "text-green-700 bg-green-50",
+  중급: "text-blue-700 bg-blue-50",
+  고급: "text-orange-700 bg-orange-50",
+};
 
 export default function Home() {
-  const [activeFilter, setActiveFilter] = useState("전체");
+  const [activeCategory, setActiveCategory] = useState("전체");
 
   const filteredCourses =
-    activeFilter === "전체" ? courses
-    : activeFilter === "LIVE" ? courses.filter((c) => c.badge === "LIVE")
-    : courses.filter((c) => c.category === activeFilter);
+    activeCategory === "전체" ? courses
+    : activeCategory === "LIVE" ? courses.filter((c) => c.badge === "LIVE")
+    : courses.filter((c) => c.category === activeCategory);
 
   return (
-    <div className="bg-white text-gray-900">
+    <div className="bg-background text-foreground">
 
-      {/* ── Hero ── */}
-      <section className="relative min-h-[90vh] flex items-center justify-center text-center overflow-hidden bg-gradient-to-b from-blue-50 via-white to-white">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-blue-100/50 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 max-w-3xl mx-auto px-4 py-28">
-          <motion.div
-            className="inline-flex items-center gap-2 bg-white border border-blue-100 rounded-full px-4 py-1.5 text-sm font-semibold text-blue-600 shadow-sm mb-6"
-            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-          >
-            <Ship size={14} /> 수입 운송 전문 No.1 플랫폼
-          </motion.div>
-
-          <motion.h1
-            className="text-4xl sm:text-5xl md:text-6xl font-black leading-[1.15] mb-5"
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            수입 운송, 이제<br />
-            <span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">셀러노트</span>로 시작하세요
-          </motion.h1>
-
-          <motion.p
-            className="text-gray-500 text-lg leading-relaxed mb-8"
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            FOB부터 통관, 물류 협상까지 — 수입 비즈니스의 모든 것을<br className="hidden sm:block" />
-            온·오프라인 전문 강의로 배워보세요.
-          </motion.p>
-
-          <motion.div
-            className="flex gap-3 justify-center flex-wrap"
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}
-          >
-            <Link
-              href="/courses"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full shadow-lg shadow-blue-200 transition-all hover:-translate-y-0.5"
-            >
-              <GraduationCap size={16} /> 무료 강의 보기
-            </Link>
-            <a
-              href="#offline"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-blue-200 hover:border-blue-400 text-blue-600 font-semibold rounded-full transition-all hover:-translate-y-0.5"
-            >
-              <Calendar size={16} /> 오프라인 일정
-            </a>
-          </motion.div>
-
-          {/* Stats */}
-          <motion.div
-            className="flex gap-10 justify-center flex-wrap mt-14 pt-10 border-t border-gray-100"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.5 }}
-          >
-            {[
-              { num: "2,400+", label: "수강생" },
-              { num: "48개", label: "강의 커리큘럼" },
-              { num: "4.9★", label: "평균 만족도" },
-              { num: "12명", label: "전문 강사진" },
-            ].map((s) => (
-              <div key={s.label} className="text-center">
-                <div className="text-2xl font-black text-blue-600">{s.num}</div>
-                <div className="text-xs text-gray-400 mt-0.5">{s.label}</div>
-              </div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── Courses ── */}
-      <section id="courses" className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div {...fadeUp()} className="mb-8">
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full mb-3">
-              <BookOpen size={11} /> 강의 목록
-            </span>
-            <h2 className="text-3xl font-black mb-2">수입 운송의 모든 과정을<br />체계적으로 배운다</h2>
-            <p className="text-gray-500 mb-6">VOD 강의와 실시간 라이브로 언제 어디서나 학습하세요</p>
-            {/* Filter */}
-            <div className="flex gap-2 flex-wrap">
-              {FILTERS.map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setActiveFilter(f)}
-                  className={`px-4 py-1.5 rounded-full text-sm font-semibold border-2 transition-all ${
-                    activeFilter === f
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600"
-                  }`}
-                >
-                  {f === "LIVE" ? "🔴 LIVE" : f}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredCourses.map((course, i) => {
-              const Icon = ICON_MAP[course.id] ?? Ship;
-              return (
-                <motion.div key={course.id} {...fadeUp(i * 0.07)}>
-                  <Link href={`/courses/${course.id}`} className="block h-full">
-                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-1 transition-all h-full flex flex-col">
-                      <div className={`h-40 bg-gradient-to-br ${course.thumbnail} flex items-center justify-center relative`}>
-                        <Icon size={52} className="text-white/30" />
-                        <span className={`absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-lg text-white ${course.badge === "LIVE" ? "bg-red-500" : "bg-black/30"}`}>
-                          {course.badge === "LIVE" ? "🔴 LIVE" : "VOD"}
-                        </span>
-                      </div>
-                      <div className="p-5 flex flex-col flex-1">
-                        <div className="text-xs font-bold text-blue-600 mb-1">{course.level}</div>
-                        <h3 className="font-bold text-sm leading-snug mb-3 flex-1">{course.title}</h3>
-                        <div className="flex gap-4 text-xs text-gray-400 mb-4">
-                          <span className="flex items-center gap-1"><Clock size={11} /> {course.totalDuration}</span>
-                          <span className="flex items-center gap-1"><Users size={11} /> {course.students}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className={`font-black text-lg ${course.free ? "text-blue-600" : "text-gray-900"}`}>{course.price}</span>
-                          <span className="text-xs font-bold bg-blue-600 text-white px-3.5 py-1.5 rounded-full">
-                            자세히 보기
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+      {/* ── Hero ─────────────────────────────────────────── */}
+      <section className="bg-background border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            {/* 텍스트 */}
+            <div>
+              <motion.div
+                initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+              >
+                <Badge variant="outline" className="text-primary border-primary/40 mb-5 gap-1.5">
+                  <Ship size={12} /> 수입 운송 전문 교육 No.1
+                </Badge>
+              </motion.div>
+              <motion.h1
+                className="text-4xl md:text-5xl font-black leading-[1.2] mb-5 tracking-tight"
+                initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
+              >
+                수입 비즈니스,<br />
+                <span className="text-primary">전문가에게 배우면</span><br />
+                달라집니다
+              </motion.h1>
+              <motion.p
+                className="text-muted-foreground text-lg leading-relaxed mb-8"
+                initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                FOB부터 통관, 물류 협상까지.<br />
+                현직 실무자가 직접 가르치는 수입 운송 커리큘럼.
+              </motion.p>
+              <motion.div
+                className="flex gap-3 flex-wrap"
+                initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }}
+              >
+                <Button size="lg" className="gap-2 rounded-full px-7" asChild>
+                  <Link href="/courses">
+                    <GraduationCap size={16} /> 강의 보러가기
                   </Link>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Blog ── */}
-      <section id="blog" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div {...fadeUp()} className="mb-8">
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full mb-3">
-              <BookOpen size={11} /> 자료실 & 블로그
-            </span>
-            <h2 className="text-3xl font-black mb-2">실무에 바로 쓰는<br />수입 운송 지식</h2>
-            <p className="text-gray-500">최신 무역 동향과 실전 노하우를 무료로 확인하세요</p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {BLOGS.map((blog, i) => (
-              <motion.div key={blog.title} {...fadeUp(i * 0.07)}>
-                <div className="border border-gray-100 rounded-2xl p-5 hover:border-blue-200 hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer h-full flex flex-col">
-                  <div className={`w-11 h-11 ${blog.bg} rounded-xl flex items-center justify-center mb-4 shrink-0`}>
-                    <blog.icon size={20} className={blog.color} />
-                  </div>
-                  <div className="text-xs font-bold text-blue-600 mb-1">{blog.category}</div>
-                  <h3 className="font-bold text-sm leading-snug mb-2">{blog.title}</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed flex-1">{blog.desc}</p>
-                  <div className="text-xs text-gray-300 mt-4">{blog.date}</div>
-                </div>
+                </Button>
+                <Button size="lg" variant="outline" className="gap-2 rounded-full px-7" asChild>
+                  <Link href="/offline">
+                    오프라인 강의 보기
+                  </Link>
+                </Button>
               </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* ── Community ── */}
-      <section id="community" className="py-20 bg-blue-50/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div {...fadeUp()} className="mb-8">
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-white border border-blue-100 px-3 py-1 rounded-full mb-3">
-              <MessageCircle size={11} /> 커뮤니티
-            </span>
-            <h2 className="text-3xl font-black mb-2">함께 성장하는<br />셀러노트 커뮤니티</h2>
-            <p className="text-gray-500">수강생 간 Q&A와 네트워킹으로 실력을 키우세요</p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-            {QAS.map((qa, i) => (
-              <motion.div key={qa.name} {...fadeUp(i * 0.07)}>
-                <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${qa.gradient} flex items-center justify-center text-white font-bold text-sm shrink-0`}>
-                      {qa.initial}
-                    </div>
-                    <div>
-                      <div className="font-bold text-sm">{qa.name}</div>
-                      <div className="text-xs text-gray-400">{qa.time}</div>
-                    </div>
+              {/* 빠른 통계 */}
+              <motion.div
+                className="flex gap-8 mt-10 pt-8 border-t border-border"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.5 }}
+              >
+                {[
+                  { num: "2,400+", label: "수강생" },
+                  { num: "4.9★", label: "평균 평점" },
+                  { num: "48개", label: "커리큘럼" },
+                ].map((s) => (
+                  <div key={s.label}>
+                    <p className="text-xl font-black text-primary">{s.num}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
                   </div>
-                  <p className="text-sm font-semibold mb-2 text-gray-800">Q. {qa.question}</p>
-                  <p className="text-xs text-gray-500 leading-relaxed">A. {qa.answer}</p>
-                  <div className="flex gap-1.5 mt-3 flex-wrap">
-                    {qa.tags.map((tag) => (
-                      <span key={tag} className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{tag}</span>
-                    ))}
-                  </div>
-                </div>
+                ))}
               </motion.div>
-            ))}
-          </div>
+            </div>
 
-          <motion.div {...fadeUp(0.2)} className="text-center">
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full shadow-lg shadow-blue-200 transition-all hover:-translate-y-0.5"
+            {/* 오른쪽: 인기 강의 미리보기 카드 */}
+            <motion.div
+              className="hidden md:block"
+              initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
             >
-              <MessageCircle size={15} /> 커뮤니티 참여하기
-            </Link>
-          </motion.div>
+              <div className="relative">
+                {/* 뒤 카드 */}
+                <div className="absolute top-4 left-4 right-4 h-full bg-muted/60 rounded-2xl border border-border" />
+                {/* 앞 카드 */}
+                <Card className="relative shadow-lg overflow-hidden">
+                  <div className={`h-36 bg-gradient-to-br ${courses[0].thumbnail}`} />
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${levelColor[courses[0].level]}`}>{courses[0].level}</span>
+                      <Badge variant="secondary" className="text-xs">인기 1위</Badge>
+                    </div>
+                    <p className="font-bold text-sm leading-snug mb-3">{courses[0].title}</p>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1"><Star size={11} className="text-yellow-500 fill-yellow-500" /> 4.9 · {courses[0].students}</span>
+                      <span className="font-bold text-primary text-base">{courses[0].price}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+                {/* 플로팅 배지 */}
+                <div className="absolute -bottom-3 -right-3 bg-primary text-primary-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow-md">
+                  🎉 무료 강의 포함
+                </div>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* ── Offline ── */}
-      <section id="offline" className="py-20 bg-white">
+      {/* ── 카테고리 네비 ───────────────────────────────── */}
+      <section className="border-b border-border bg-background sticky top-[79px] z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div {...fadeUp()} className="mb-8">
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full mb-3">
-              <Calendar size={11} /> 오프라인 강의
-            </span>
-            <h2 className="text-3xl font-black mb-2">현장에서 배우는<br />실전 집중 과정</h2>
-            <p className="text-gray-500">강사와 직접 만나 심화 실습과 네트워킹까지 한 번에</p>
-          </motion.div>
+          <div className="flex gap-1 overflow-x-auto no-scrollbar py-2">
+            {CATEGORIES.map(({ label, icon: Icon, id }) => (
+              <button
+                key={id}
+                onClick={() => setActiveCategory(id)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all shrink-0 ${
+                  activeCategory === id
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+              >
+                <Icon size={14} />
+                {label === "LIVE" ? "🔴 LIVE" : label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 강의 목록 ───────────────────────────────────── */}
+      <section className="py-14 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-7">
+            <div>
+              <h2 className="text-xl font-black">
+                {activeCategory === "전체" ? "전체 강의" : activeCategory === "LIVE" ? "🔴 LIVE 강의" : `${activeCategory} 강의`}
+              </h2>
+              <p className="text-sm text-muted-foreground mt-0.5">{filteredCourses.length}개 강의</p>
+            </div>
+            <Button variant="ghost" size="sm" className="gap-1 text-primary" asChild>
+              <Link href="/courses">전체보기 <ChevronRight size={14} /></Link>
+            </Button>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {SCHEDULES.map((s, i) => (
-              <motion.div key={s.title} {...fadeUp(i * 0.1)}>
-                <div className="border border-gray-100 rounded-2xl overflow-hidden hover:shadow-md hover:-translate-y-1 transition-all h-full flex flex-col">
-                  <div className={`bg-gradient-to-br ${s.gradient} p-5 text-white`}>
-                    <div className="flex items-center gap-1.5 text-xs opacity-80 mb-1.5">
-                      <Calendar size={11} /> {s.date}
+            {filteredCourses.map((course, i) => (
+              <motion.div
+                key={course.id}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.35, delay: i * 0.06 }}
+              >
+                <Link href={`/courses/${course.id}`}>
+                  <Card className="overflow-hidden hover:shadow-md transition-all hover:-translate-y-0.5 gap-0 py-0 h-full">
+                    {/* 썸네일 */}
+                    <div className={`h-36 bg-gradient-to-br ${course.thumbnail} relative`}>
+                      <span className={`absolute top-3 left-3 text-[11px] font-bold px-2 py-0.5 rounded text-white ${course.badge === "LIVE" ? "bg-red-500" : "bg-black/40"}`}>
+                        {course.badge === "LIVE" ? "🔴 LIVE" : "VOD"}
+                      </span>
+                      {course.free && (
+                        <span className="absolute top-3 right-3 text-[11px] font-bold px-2 py-0.5 rounded bg-primary text-primary-foreground">FREE</span>
+                      )}
                     </div>
-                    <h3 className="font-black text-base">{s.title}</h3>
-                  </div>
-                  <div className="p-5 flex flex-col flex-1">
-                    <div className="space-y-2 text-xs text-gray-500 mb-5">
-                      <div className="flex items-start gap-1.5"><MapPin size={11} className="shrink-0 mt-0.5" /> {s.location}</div>
-                      <div className="flex items-start gap-1.5"><GraduationCap size={11} className="shrink-0 mt-0.5" /> {s.instructor}</div>
-                      <div className="flex items-start gap-1.5"><Award size={11} className="shrink-0 mt-0.5" /> {s.price}</div>
-                    </div>
-                    <div className="flex items-center gap-2 mb-5 mt-auto">
-                      <span className="text-xs text-gray-400 shrink-0">잔여 {s.seats}/{s.total}</span>
-                      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${s.pct}%` }} />
+
+                    <CardContent className="p-4">
+                      {/* 카테고리 + 레벨 */}
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <span className="text-xs text-muted-foreground">{course.category}</span>
+                        <span className="text-muted-foreground/40 text-xs">·</span>
+                        <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${levelColor[course.level]}`}>{course.level}</span>
                       </div>
-                      <span className="text-xs text-gray-400 shrink-0">{s.pct}%</span>
-                    </div>
-                    <button className="w-full py-2.5 bg-gray-900 hover:bg-blue-600 text-white text-sm font-bold rounded-xl transition-colors">
-                      신청하기
-                    </button>
-                  </div>
-                </div>
+
+                      {/* 제목 */}
+                      <h3 className="font-bold text-sm leading-snug mb-2 line-clamp-2">{course.title}</h3>
+
+                      {/* 강사 */}
+                      <p className="text-xs text-muted-foreground mb-2">{course.instructor} 강사</p>
+
+                      {/* 별점 */}
+                      <div className="flex items-center gap-1 mb-3">
+                        <Star size={11} className="text-yellow-500 fill-yellow-500" />
+                        <span className="text-xs font-bold text-yellow-600">4.9</span>
+                        <span className="text-xs text-muted-foreground">({course.students})</span>
+                      </div>
+
+                      <Separator className="mb-3" />
+
+                      {/* 가격 + 메타 */}
+                      <div className="flex items-center justify-between">
+                        <span className={`font-black text-base ${course.free ? "text-primary" : "text-foreground"}`}>
+                          {course.price}
+                        </span>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Clock size={11} />
+                          {course.totalDuration}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Instructors ── */}
-      <section id="instructors" className="py-20 bg-gray-50">
+      {/* ── 숫자로 보는 셀러노트 ────────────────────────── */}
+      <section className="bg-primary py-14">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div {...fadeUp()} className="mb-8">
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full mb-3">
-              <GraduationCap size={11} /> 강사 소개
-            </span>
-            <h2 className="text-3xl font-black mb-2">현직 전문가가<br />직접 가르칩니다</h2>
-            <p className="text-gray-500">이론이 아닌 수천 건의 실전 경험을 바탕으로 강의합니다</p>
-          </motion.div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center text-primary-foreground">
+            {[
+              { icon: Users, num: "15,000+", label: "누적 수강생" },
+              { icon: BarChart2, num: "2,300+", label: "무역 창업 성공" },
+              { icon: Star, num: "98%", label: "수강생 만족도" },
+              { icon: BookOpen, num: "50+", label: "실무 강의 콘텐츠" },
+            ].map((s, i) => (
+              <motion.div
+                key={s.label}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.08 }}
+              >
+                <s.icon size={22} className="mx-auto mb-2 opacity-80" />
+                <p className="text-3xl font-black mb-1">{s.num}</p>
+                <p className="text-sm text-primary-foreground/70">{s.label}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {/* ── 강사 소개 ────────────────────────────────────── */}
+      <section className="py-14 bg-muted/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <p className="text-primary text-sm font-semibold mb-1">셀러노트 인증 전문가</p>
+              <h2 className="text-xl font-black">현직 전문가가 직접 가르칩니다</h2>
+            </div>
+            <Button variant="ghost" size="sm" className="gap-1 text-primary" asChild>
+              <Link href="/courses">강의 보기 <ChevronRight size={14} /></Link>
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {INSTRUCTORS.map((inst, i) => (
-              <motion.div key={inst.name} {...fadeUp(i * 0.1)}>
-                <div className="bg-white rounded-2xl p-6 text-center shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-1 transition-all">
-                  <div className={`w-20 h-20 mx-auto rounded-full bg-gradient-to-br ${inst.gradient} flex items-center justify-center text-white text-2xl font-black mb-4`}>
+              <motion.div
+                key={inst.name}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.35, delay: i * 0.08 }}
+              >
+                <Card className="p-5 text-center hover:shadow-md hover:-translate-y-0.5 transition-all">
+                  <div className={`w-14 h-14 mx-auto rounded-full bg-gradient-to-br ${inst.gradient} flex items-center justify-center text-white text-xl font-black mb-3`}>
                     {inst.name[0]}
                   </div>
-                  <div className="font-black text-base mb-1">{inst.name}</div>
-                  <div className="text-xs font-bold text-blue-600 mb-3">{inst.role}</div>
-                  <p className="text-xs text-gray-500 leading-relaxed">{inst.desc}</p>
-                </div>
+                  <p className="font-bold text-sm">{inst.name}</p>
+                  <p className="text-xs text-primary font-semibold mb-1">{inst.role}</p>
+                  <p className="text-xs text-muted-foreground mb-3 leading-relaxed">{inst.career}</p>
+                  <Separator className="mb-3" />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span className="flex items-center gap-0.5">
+                      <Star size={10} className="text-yellow-500 fill-yellow-500" /> {inst.rating}
+                    </span>
+                    <span>강의 {inst.courses}개</span>
+                  </div>
+                </Card>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Reviews ── */}
-      <section id="reviews" className="py-20 bg-gray-950 text-white">
+      {/* ── 수강생 후기 ──────────────────────────────────── */}
+      <section className="py-14 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div {...fadeUp()} className="mb-8">
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-yellow-400 bg-yellow-400/10 border border-yellow-400/20 px-3 py-1 rounded-full mb-3">
-              <Star size={11} /> 수강생 후기
-            </span>
-            <h2 className="text-3xl font-black mb-2">수강생들이<br />직접 말합니다</h2>
-            <p className="text-gray-400">실제 수강 후 변화된 사례들을 확인하세요</p>
-          </motion.div>
+          <div className="mb-8">
+            <p className="text-primary text-sm font-semibold mb-1">수강생 후기</p>
+            <h2 className="text-xl font-black">직접 수강한 분들의 이야기</h2>
+          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {REVIEWS.map((rev, i) => (
-              <motion.div key={rev.name} {...fadeUp(i * 0.07)}>
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/8 transition-all h-full flex flex-col">
-                  <div className="text-yellow-400 text-sm mb-3 tracking-wider">★★★★★</div>
-                  <p className="text-sm text-gray-300 leading-relaxed flex-1">{rev.text}</p>
-                  <div className="flex items-center gap-2.5 mt-5">
-                    <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${rev.gradient} flex items-center justify-center text-white text-xs font-bold shrink-0`}>
+              <motion.div
+                key={rev.name}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.35, delay: i * 0.07 }}
+              >
+                <Card className="p-5 h-full flex flex-col hover:shadow-md transition-shadow">
+                  {/* 별점 */}
+                  <div className="flex gap-0.5 mb-3">
+                    {Array.from({ length: rev.rating }).map((_, j) => (
+                      <Star key={j} size={13} className="text-yellow-500 fill-yellow-500" />
+                    ))}
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed flex-1 mb-4">{rev.text}</p>
+                  <Separator className="mb-3" />
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${rev.gradient} flex items-center justify-center text-white text-xs font-bold shrink-0`}>
                       {rev.initial}
                     </div>
                     <div>
-                      <div className="text-sm font-bold">{rev.name}</div>
-                      <div className="text-xs text-gray-500">{rev.course}</div>
+                      <p className="text-sm font-bold">{rev.name}</p>
+                      <p className="text-xs text-muted-foreground">{rev.course}</p>
                     </div>
                   </div>
-                </div>
+                </Card>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── CTA ── */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-violet-600 text-white text-center">
-        <div className="max-w-2xl mx-auto px-4">
-          <motion.div {...fadeUp()}>
-            <h2 className="text-3xl font-black mb-3">지금 시작하면 무료 강의 제공!</h2>
-            <p className="text-white/80 text-base leading-relaxed mb-8">
-              수입 비즈니스의 첫 걸음을 셀러노트와 함께 시작하세요.<br />
-              오늘 가입하시면 입문 VOD 강의를 무료로 드립니다.
+      {/* ── 블로그 / 자료실 ──────────────────────────────── */}
+      <section className="py-14 bg-muted/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <p className="text-primary text-sm font-semibold mb-1">자료실 & 블로그</p>
+              <h2 className="text-xl font-black">실무에 바로 쓰는 무역 지식</h2>
+            </div>
+            <Button variant="ghost" size="sm" className="gap-1 text-primary">
+              전체보기 <ChevronRight size={14} />
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {BLOGS.map((blog, i) => (
+              <motion.div
+                key={blog.title}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.35, delay: i * 0.06 }}
+              >
+                <Card className="p-5 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer h-full flex flex-col">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Badge variant="secondary" className="text-xs">{blog.category}</Badge>
+                  </div>
+                  <h3 className="font-bold text-sm leading-snug flex-1 mb-4">{blog.title}</h3>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>{blog.date}</span>
+                    <span>읽기 {blog.readTime}</span>
+                  </div>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA 배너 ─────────────────────────────────────── */}
+      <section className="py-14 bg-background border-t border-border">
+        <div className="max-w-3xl mx-auto px-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <Badge variant="outline" className="text-primary border-primary/40 mb-5">오늘 가입하면 무료 강의 제공</Badge>
+            <h2 className="text-3xl font-black mb-4 tracking-tight">
+              수입 비즈니스의 첫 걸음,<br />셀러노트와 함께 시작하세요
+            </h2>
+            <p className="text-muted-foreground mb-8 leading-relaxed">
+              현직 전문가의 강의로 시행착오를 줄이고<br />
+              더 빠르게 수입 비즈니스를 성장시키세요.
             </p>
             <div className="flex gap-3 justify-center flex-wrap">
-              <Link
-                href="/register"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white text-blue-600 font-bold rounded-full shadow-lg hover:-translate-y-0.5 transition-all"
-              >
-                <GraduationCap size={16} /> 지금 무료 가입하기
-              </Link>
-              <Link
-                href="/courses"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 border-2 border-white/30 hover:bg-white/20 text-white font-bold rounded-full transition-all hover:-translate-y-0.5"
-              >
-                강의 목록 보기 <ArrowRight size={15} />
-              </Link>
+              <Button size="lg" className="rounded-full px-8 gap-2" asChild>
+                <Link href="/register">
+                  무료로 시작하기 <ArrowRight size={15} />
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" className="rounded-full px-8" asChild>
+                <Link href="/courses">강의 둘러보기</Link>
+              </Button>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <footer className="bg-gray-950 border-t border-white/5 py-10 text-center">
-        <div className="text-white font-black text-lg mb-1">Sellernote</div>
-        <p className="text-gray-500 text-sm">© 2025 주식회사 셀러노트. All rights reserved.</p>
+      {/* ── Footer ───────────────────────────────────────── */}
+      <footer className="bg-muted/40 border-t border-border py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between gap-10 mb-10">
+            <div>
+              <p className="font-black text-lg mb-2">Sellernote</p>
+              <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
+                수입무역 교육 · 물류 · SaaS 생태계.<br />
+                무역을 쉽게 만드는 사람들.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-x-12 gap-y-6 text-sm">
+              <div className="space-y-2">
+                <p className="font-semibold text-xs uppercase tracking-wide text-muted-foreground mb-3">강의</p>
+                <Link href="/courses" className="block text-muted-foreground hover:text-foreground transition-colors">온라인 강의</Link>
+                <Link href="/offline" className="block text-muted-foreground hover:text-foreground transition-colors">오프라인 강의</Link>
+              </div>
+              <div className="space-y-2">
+                <p className="font-semibold text-xs uppercase tracking-wide text-muted-foreground mb-3">회사</p>
+                <Link href="/about" className="block text-muted-foreground hover:text-foreground transition-colors">회사소개</Link>
+                <Link href="/inquiry" className="block text-muted-foreground hover:text-foreground transition-colors">문의하기</Link>
+                <a href="mailto:api@seller-note.com" className="block text-muted-foreground hover:text-foreground transition-colors">API 문의</a>
+              </div>
+            </div>
+          </div>
+          <Separator className="mb-6" />
+          <div className="flex flex-col md:flex-row justify-between items-center gap-3 text-xs text-muted-foreground">
+            <p>© 2025 주식회사 셀러노트. All rights reserved.</p>
+            <p>api@seller-note.com</p>
+          </div>
+        </div>
       </footer>
 
     </div>

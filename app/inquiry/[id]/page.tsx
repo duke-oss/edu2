@@ -2,8 +2,14 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Lock, AlertCircle, Loader2, ArrowLeft, Tag, Calendar, User } from "lucide-react";
+import { Lock, Loader2, ArrowLeft, Tag, Calendar, User } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface InquiryDetail {
   id: string;
@@ -47,44 +53,47 @@ export default function InquiryDetailPage() {
       <div className="max-w-2xl mx-auto px-4 py-10">
         <Link
           href="/inquiry"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6"
         >
           <ArrowLeft size={15} /> 목록으로
         </Link>
 
-        <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm">
-          {/* 메타 정보 */}
-          <div className="flex flex-wrap gap-3 mb-4">
-            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-600">
-              <Tag size={11} /> {detail.category}
-            </span>
-            <span className="inline-flex items-center gap-1 text-xs text-gray-400">
-              <User size={11} />
-              {detail.users?.name || detail.users?.email?.split("@")[0] || "익명"}
-            </span>
-            <span className="inline-flex items-center gap-1 text-xs text-gray-400">
-              <Calendar size={11} />
-              {new Date(detail.created_at).toLocaleDateString("ko-KR")}
-            </span>
-          </div>
+        <Card>
+          <CardContent className="pt-6">
+            {/* 메타 정보 */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              <Badge variant="secondary" className="gap-1">
+                <Tag size={11} /> {detail.category}
+              </Badge>
+              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                <User size={11} />
+                {detail.users?.name || detail.users?.email?.split("@")[0] || "익명"}
+              </span>
+              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                <Calendar size={11} />
+                {new Date(detail.created_at).toLocaleDateString("ko-KR")}
+              </span>
+            </div>
 
-          {/* 제목 */}
-          <h1 className="text-xl font-bold text-gray-900 mb-6 pb-6 border-b border-gray-100">
-            {detail.title}
-          </h1>
+            {/* 제목 */}
+            <h1 className="text-xl font-bold mb-6 pb-6 border-b border-border">
+              {detail.title}
+            </h1>
 
-          {/* 내용 */}
-          <p className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm">
-            {detail.content}
-          </p>
-        </div>
+            {/* 내용 */}
+            <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap text-sm">
+              {detail.content}
+            </p>
+          </CardContent>
+        </Card>
 
-        <button
+        <Button
+          variant="ghost"
+          className="mt-4 text-muted-foreground"
           onClick={() => router.push("/inquiry")}
-          className="mt-6 text-sm text-gray-500 hover:text-gray-700 transition-colors"
         >
           ← 목록으로 돌아가기
-        </button>
+        </Button>
       </div>
     );
   }
@@ -94,43 +103,46 @@ export default function InquiryDetailPage() {
     <div className="max-w-md mx-auto px-4 py-10">
       <Link
         href="/inquiry"
-        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-8"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-8"
       >
         <ArrowLeft size={15} /> 목록으로
       </Link>
 
-      <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm text-center">
-        <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Lock size={24} className="text-blue-600" />
-        </div>
-        <h2 className="text-lg font-bold text-gray-900 mb-1">비밀글입니다</h2>
-        <p className="text-sm text-gray-500 mb-6">작성 시 설정한 비밀번호를 입력하세요</p>
-
-        <form onSubmit={handleVerify} className="space-y-3">
-          {error && (
-            <div className="flex items-center gap-2 p-3 bg-red-50 text-red-600 rounded-xl text-sm text-left">
-              <AlertCircle size={15} className="shrink-0" /> {error}
+      <Card>
+        <CardHeader className="text-center">
+          <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2">
+            <Lock size={24} className="text-primary" />
+          </div>
+          <CardTitle>비밀글입니다</CardTitle>
+          <CardDescription>작성 시 설정한 비밀번호를 입력하세요</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleVerify} className="space-y-3">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <div className="space-y-1.5">
+              <Label htmlFor="password">비밀번호</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="비밀번호 입력"
+                required
+                autoFocus
+                className="text-center"
+              />
             </div>
-          )}
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="비밀번호 입력"
-            required
-            autoFocus
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition-colors"
-          >
-            {loading && <Loader2 size={15} className="animate-spin" />}
-            확인
-          </button>
-        </form>
-      </div>
+            <Button type="submit" disabled={loading} className="w-full">
+              {loading && <Loader2 size={15} className="animate-spin" />}
+              확인
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

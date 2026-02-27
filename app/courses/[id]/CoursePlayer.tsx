@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { Course } from "@/app/data/courses";
 import { Play, Clock, ChevronRight, Lock, CheckCircle, Rocket, BookOpen } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function CoursePlayer({ course }: { course: Course }) {
   const [activeLesson, setActiveLesson] = useState(course.lessons[0]);
@@ -15,7 +16,7 @@ export default function CoursePlayer({ course }: { course: Course }) {
       <nav className="bg-gray-900 border-b border-gray-800 px-4 sm:px-6 h-14 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-3 min-w-0">
           <Link href="/" className="flex items-center gap-1.5 shrink-0">
-            <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
               <Rocket size={13} fill="currentColor" />
             </div>
             <span className="font-bold text-sm hidden sm:block">Sellernote</span>
@@ -105,30 +106,31 @@ export default function CoursePlayer({ course }: { course: Course }) {
                 {/* Prev/Next */}
                 <div className="flex items-center gap-3 mt-6">
                   {course.lessons.indexOf(activeLesson) > 0 && (
-                    <motion.button
-                      whileTap={{ scale: 0.97 }}
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="rounded-full bg-gray-800 text-gray-200 hover:bg-gray-700"
                       onClick={() =>
                         setActiveLesson(
                           course.lessons[course.lessons.indexOf(activeLesson) - 1]
                         )
                       }
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-gray-800 hover:bg-gray-700 text-sm transition-colors"
                     >
                       이전 강의
-                    </motion.button>
+                    </Button>
                   )}
                   {course.lessons.indexOf(activeLesson) < course.lessons.length - 1 && (
-                    <motion.button
-                      whileTap={{ scale: 0.97 }}
+                    <Button
+                      size="sm"
+                      className="rounded-full gap-1"
                       onClick={() =>
                         setActiveLesson(
                           course.lessons[course.lessons.indexOf(activeLesson) + 1]
                         )
                       }
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-blue-600 hover:bg-blue-500 text-sm font-medium transition-colors"
                     >
                       다음 강의 <ChevronRight size={14} />
-                    </motion.button>
+                    </Button>
                   )}
                 </div>
               </div>
@@ -155,15 +157,14 @@ export default function CoursePlayer({ course }: { course: Course }) {
                   whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                   onClick={() => setActiveLesson(lesson)}
                   className={`w-full text-left px-4 py-3.5 flex items-start gap-3 transition-colors border-b border-gray-800/50 ${
-                    isActive ? "bg-gray-800 border-l-2 border-l-blue-500" : ""
+                    isActive ? "bg-gray-800 border-l-2 border-l-primary" : ""
                   }`}
                 >
-                  {/* Icon */}
                   <div className="shrink-0 mt-0.5">
                     {isActive ? (
                       <motion.div
                         layoutId="active-indicator"
-                        className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center"
+                        className="w-6 h-6 rounded-full bg-primary flex items-center justify-center"
                       >
                         <Play size={10} className="ml-0.5 fill-white text-white" />
                       </motion.div>
@@ -178,7 +179,6 @@ export default function CoursePlayer({ course }: { course: Course }) {
                     )}
                   </div>
 
-                  {/* Text */}
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm font-medium leading-snug ${isActive ? "text-white" : "text-gray-300"}`}>
                       {lesson.title}
