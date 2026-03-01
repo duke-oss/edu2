@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 
 // Routes that require authentication
-const protectedPaths = ["/courses", "/dashboard", "/inquiry/new"];
+const protectedPaths = ["/courses", "/dashboard", "/inquiry/new", "/admin"];
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
