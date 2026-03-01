@@ -116,8 +116,8 @@ export default function CourseForm({ initialData, mode }: CourseFormProps) {
     setSaving(false);
 
     if (res.ok) {
-      router.push("/admin/courses");
       router.refresh();
+      router.push("/admin/courses");
     } else {
       const data = await res.json();
       setError(data.error ?? "저장에 실패했습니다.");
