@@ -13,7 +13,7 @@ export default function AdminLogout() {
   return (
     <button
       onClick={handleLogout}
-      className="text-xs text-muted-foreground hover:text-destructive transition-colors text-left"
+      className="w-full text-left text-xs font-medium text-destructive hover:underline transition-colors"
     >
       로그아웃
     </button>

@@ -65,6 +65,7 @@ export default function Navbar() {
   const pathname = usePathname();
 
   if (/^\/courses\/.+\/player/.test(pathname)) return null;
+  if (pathname.startsWith("/admin") || pathname.startsWith("/admin-login")) return null;
 
   return (
     <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
