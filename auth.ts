@@ -57,29 +57,33 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // Google 로그인 시 Supabase users 테이블에 자동 저장
     async jwt({ token, user, account }) {
       if (account?.provider === "google" && user?.email) {
-        const db = getDb();
+        try {
+          const db = getDb();
 
-        const { data: existing } = await db
-          .from("users")
-          .select("id")
-          .eq("email", user.email)
-          .maybeSingle();
-
-        if (existing) {
-          token.id = existing.id;
-        } else {
-          const { data: created } = await db
+          const { data: existing } = await db
             .from("users")
-            .insert({
-              name: user.name,
-              email: user.email,
-              image: user.image,
-              email_verified: new Date().toISOString(),
-            })
             .select("id")
-            .single();
+            .eq("email", user.email)
+            .maybeSingle();
 
-          if (created) token.id = created.id;
+          if (existing) {
+            token.id = existing.id;
+          } else {
+            const { data: created } = await db
+              .from("users")
+              .insert({
+                name: user.name,
+                email: user.email,
+                image: user.image,
+                email_verified: new Date().toISOString(),
+              })
+              .select("id")
+              .single();
+
+            if (created) token.id = created.id;
+          }
+        } catch (e) {
+          console.error("[auth] JWT callback Supabase error:", e);
         }
       }
 
