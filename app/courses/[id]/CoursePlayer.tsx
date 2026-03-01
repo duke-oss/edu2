@@ -8,7 +8,15 @@ import { Play, Clock, ChevronRight, Lock, CheckCircle, Rocket, BookOpen } from "
 import { Button } from "@/components/ui/button";
 
 export default function CoursePlayer({ course }: { course: Course }) {
-  const [activeLesson, setActiveLesson] = useState(course.lessons[0]);
+  const [activeLesson, setActiveLesson] = useState(course.lessons[0] ?? null);
+
+  if (!activeLesson) {
+    return (
+      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
+        <p className="text-gray-400">등록된 강의가 없습니다.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">

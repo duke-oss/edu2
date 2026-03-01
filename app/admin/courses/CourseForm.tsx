@@ -56,6 +56,27 @@ const defaultLesson = (): Lesson => ({
   video_id: "",
 });
 
+function extractYoutubeId(input: string): string {
+  if (!input) return "";
+  // already a plain ID (no slash or dot)
+  if (!input.includes("/") && !input.includes(".")) return input.trim();
+  try {
+    const url = new URL(input.trim());
+    // youtu.be/ID
+    if (url.hostname === "youtu.be") return url.pathname.slice(1);
+    // youtube.com/watch?v=ID
+    const v = url.searchParams.get("v");
+    if (v) return v;
+    // youtube.com/embed/ID
+    const parts = url.pathname.split("/");
+    const embedIdx = parts.indexOf("embed");
+    if (embedIdx !== -1) return parts[embedIdx + 1];
+  } catch {
+    // not a URL, return as-is
+  }
+  return input.trim();
+}
+
 export default function CourseForm({ initialData, mode }: CourseFormProps) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -337,11 +358,12 @@ export default function CourseForm({ initialData, mode }: CourseFormProps) {
                   />
                 </div>
                 <div>
-                  <Label className="mb-1 block text-xs">Video ID (선택)</Label>
+                  <Label className="mb-1 block text-xs">Video ID (선택 — YouTube URL 또는 ID)</Label>
                   <Input
                     value={lesson.video_id}
                     onChange={(e) => updateLesson(index, "video_id", e.target.value)}
-                    placeholder="YouTube Video ID"
+                    onBlur={(e) => updateLesson(index, "video_id", extractYoutubeId(e.target.value))}
+                    placeholder="YouTube URL 또는 Video ID"
                   />
                 </div>
               </div>
