@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase";
 import { BookOpen, Clock, User, ChevronRight } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+
+export const dynamic = "force-dynamic";
 
 const levelColor: Record<string, string> = {
   입문: "bg-green-50 text-green-700 border-green-200",
@@ -13,14 +14,26 @@ const levelColor: Record<string, string> = {
 
 export default async function CoursesPage() {
   const db = createAdminClient();
-  const { data } = await db
+
+  const { data, error } = await db
     .from("courses")
-    .select("id, title, description, category, level, instructor, total_duration, thumbnail, badge, price, free, students, lessons(id)")
+    .select("id, title, description, category, level, instructor, total_duration, thumbnail, badge, price, free, students")
     .order("created_at", { ascending: true });
+
+  if (error) console.error("[courses page] fetch error:", error.message);
+
+  const { data: lessonCounts } = await db
+    .from("lessons")
+    .select("course_id");
+
+  const countMap: Record<string, number> = {};
+  for (const l of lessonCounts ?? []) {
+    countMap[l.course_id] = (countMap[l.course_id] ?? 0) + 1;
+  }
 
   const courses = (data ?? []).map((c) => ({
     ...c,
-    lessonCount: Array.isArray(c.lessons) ? c.lessons.length : 0,
+    lessonCount: countMap[c.id] ?? 0,
   }));
 
   return (
