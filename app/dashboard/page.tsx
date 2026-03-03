@@ -117,10 +117,7 @@ export default async function DashboardPage({
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold mb-1">마이페이지</h1>
-      <p className="text-sm text-muted-foreground mb-8">
-        {user?.name ?? user?.email ?? ""}
-      </p>
+      <h1 className="text-2xl font-bold mb-8">마이페이지</h1>
 
       {/* Tab Nav */}
       <div className="flex gap-0 border-b border-border mb-8">

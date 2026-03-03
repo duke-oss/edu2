@@ -34,3 +34,25 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## OpenAI API quick setup
+
+1. Add your key to `.env.local`.
+
+```bash
+OPENAI_API_KEY=sk-...
+```
+
+2. Run the dev server.
+
+```bash
+npm run dev
+```
+
+3. Test the API route.
+
+```bash
+curl -X POST http://localhost:3000/api/openai/test \
+  -H "Content-Type: application/json" \
+  -d '{"prompt":"회사 OpenAI API 키 연결 테스트 문장을 한 줄로 작성해줘."}'
+```
