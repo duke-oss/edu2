@@ -1,9 +1,18 @@
-﻿import { Resend } from "resend";
+import { Resend } from "resend";
 
 const DEFAULT_FROM = "Sellernote Education <onboarding@resend.dev>";
-const resend = new Resend(process.env.RESEND_API_KEY);
+
+function getResendClient() {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return null;
+  return new Resend(key);
+}
 
 async function sendWithFrom(from: string, to: string, subject: string, html: string) {
+  const resend = getResendClient();
+  if (!resend) {
+    throw new Error("RESEND_API_KEY is missing");
+  }
   const { error } = await resend.emails.send({ from, to, subject, html });
   return error;
 }
