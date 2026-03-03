@@ -18,7 +18,7 @@ function NavAuth() {
   if (session?.user) {
     return (
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2">
+        <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-75 transition-opacity">
           <Avatar className="w-8 h-8">
             <AvatarImage src={session.user.image ?? undefined} alt={session.user.name ?? ""} />
             <AvatarFallback className="bg-primary/10 text-primary text-xs">
@@ -28,7 +28,7 @@ function NavAuth() {
           <span className="text-sm font-medium text-muted-foreground max-w-[100px] truncate">
             {session.user.name ?? session.user.email}
           </span>
-        </div>
+        </Link>
         <Button
           variant="ghost"
           size="sm"

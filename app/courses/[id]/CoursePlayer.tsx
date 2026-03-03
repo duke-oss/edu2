@@ -1,14 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { Course } from "@/app/data/courses";
-import { Play, Clock, ChevronRight, Lock, CheckCircle, Rocket, BookOpen } from "lucide-react";
+import { Play, Clock, ChevronRight, CheckCircle, Rocket, BookOpen, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function CoursePlayer({ course }: { course: Course }) {
+type Props = {
+  course: Course;
+  watchedLessonIds: string[];
+  userId: string | null;
+};
+
+export default function CoursePlayer({ course, watchedLessonIds, userId }: Props) {
   const [activeLesson, setActiveLesson] = useState(course.lessons[0] ?? null);
+  const [watched, setWatched] = useState<Set<string>>(() => new Set(watchedLessonIds));
+
+  const totalLessons = course.lessons.length;
+  const watchedCount = watched.size;
+  const progressPct = totalLessons > 0 ? Math.round((watchedCount / totalLessons) * 100) : 0;
+
+  const markWatched = useCallback(
+    (lessonId: string) => {
+      if (!userId || watched.has(lessonId)) return;
+      setWatched((prev) => new Set([...prev, lessonId]));
+      fetch("/api/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ courseId: course.id, lessonId }),
+      });
+    },
+    [userId, watched, course.id]
+  );
+
+  const handleSelectLesson = useCallback(
+    (lesson: Course["lessons"][number]) => {
+      // 현재 레슨을 시청 완료로 처리
+      if (activeLesson) markWatched(activeLesson.id);
+      setActiveLesson(lesson);
+    },
+    [activeLesson, markWatched]
+  );
 
   if (!activeLesson) {
     return (
@@ -18,11 +51,21 @@ export default function CoursePlayer({ course }: { course: Course }) {
     );
   }
 
+  const currentIndex = course.lessons.indexOf(activeLesson);
+
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       {/* Top Nav */}
       <nav className="bg-gray-900 border-b border-gray-800 px-4 sm:px-6 h-14 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-3 min-w-0">
+          <Link
+            href={`/courses/${course.id}`}
+            className="flex items-center gap-1.5 shrink-0 text-gray-400 hover:text-white transition-colors"
+          >
+            <ArrowLeft size={16} />
+            <span className="text-sm hidden sm:block">강의 상세</span>
+          </Link>
+          <div className="w-px h-4 bg-gray-700 shrink-0" />
           <Link href="/" className="flex items-center gap-1.5 shrink-0">
             <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
               <Rocket size={13} fill="currentColor" />
@@ -30,19 +73,30 @@ export default function CoursePlayer({ course }: { course: Course }) {
             <span className="font-bold text-sm hidden sm:block">Sellernote</span>
           </Link>
           <ChevronRight size={14} className="text-gray-600 shrink-0" />
-          <Link href="/courses" className="text-sm text-gray-400 hover:text-white transition-colors shrink-0">
-            강의 목록
-          </Link>
-          <ChevronRight size={14} className="text-gray-600 shrink-0" />
-          <Link href={`/courses/${course.id}`} className="text-sm text-gray-400 hover:text-white transition-colors truncate max-w-[160px]">
-            {course.title}
-          </Link>
-          <ChevronRight size={14} className="text-gray-600 shrink-0" />
-          <span className="text-sm text-white font-medium shrink-0">수강 중</span>
+          <span className="text-sm text-gray-400 truncate max-w-[160px]">{course.title}</span>
         </div>
-        <div className="flex items-center gap-2 shrink-0 ml-4">
-          <span className="text-xs text-gray-400 hidden sm:block">
-            {course.lessons.length}개 강의 · {course.totalDuration}
+
+        {/* 수강률 */}
+        <div className="flex items-center gap-3 shrink-0 ml-4">
+          <div className="hidden sm:flex flex-col items-end gap-0.5">
+            <span className="text-xs text-gray-400">
+              {watchedCount} / {totalLessons}강 완료
+            </span>
+            <div className="w-28 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-primary rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${progressPct}%` }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              />
+            </div>
+          </div>
+          <span
+            className={`text-sm font-bold tabular-nums ${
+              progressPct === 100 ? "text-green-400" : "text-primary"
+            }`}
+          >
+            {progressPct}%
           </span>
         </div>
       </nav>
@@ -50,7 +104,6 @@ export default function CoursePlayer({ course }: { course: Course }) {
       <div className="flex flex-col lg:flex-row min-h-[calc(100vh-56px)]">
         {/* Video Area */}
         <div className="flex-1 min-w-0">
-          {/* Video Player */}
           <AnimatePresence mode="wait">
             <motion.div
               key={activeLesson.id + "-video"}
@@ -70,14 +123,9 @@ export default function CoursePlayer({ course }: { course: Course }) {
                 />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-gray-900">
-                  <motion.div
-                    className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center"
-                    initial={{ scale: 0.8 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.3 }}
-                  >
+                  <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center">
                     <Play size={28} className="text-gray-500 ml-1" />
-                  </motion.div>
+                  </div>
                   <p className="text-gray-400 text-sm">강의 준비 중입니다</p>
                 </div>
               )}
@@ -101,43 +149,50 @@ export default function CoursePlayer({ course }: { course: Course }) {
                   <span>·</span>
                   <Clock size={13} />
                   <span>{activeLesson.duration}</span>
+                  {watched.has(activeLesson.id) && (
+                    <>
+                      <span>·</span>
+                      <CheckCircle size={13} className="text-green-400" />
+                      <span className="text-green-400">시청 완료</span>
+                    </>
+                  )}
                 </div>
                 <h1 className="text-xl sm:text-2xl font-bold text-white mb-3">
                   {activeLesson.title}
                 </h1>
                 {activeLesson.description && (
-                  <p className="text-gray-400 leading-relaxed">
-                    {activeLesson.description}
-                  </p>
+                  <p className="text-gray-400 leading-relaxed">{activeLesson.description}</p>
                 )}
 
                 {/* Prev/Next */}
                 <div className="flex items-center gap-3 mt-6">
-                  {course.lessons.indexOf(activeLesson) > 0 && (
+                  {currentIndex > 0 && (
                     <Button
                       variant="secondary"
                       size="sm"
                       className="rounded-full bg-gray-800 text-gray-200 hover:bg-gray-700"
-                      onClick={() =>
-                        setActiveLesson(
-                          course.lessons[course.lessons.indexOf(activeLesson) - 1]
-                        )
-                      }
+                      onClick={() => handleSelectLesson(course.lessons[currentIndex - 1])}
                     >
                       이전 강의
                     </Button>
                   )}
-                  {course.lessons.indexOf(activeLesson) < course.lessons.length - 1 && (
+                  {currentIndex < totalLessons - 1 ? (
                     <Button
                       size="sm"
                       className="rounded-full gap-1"
-                      onClick={() =>
-                        setActiveLesson(
-                          course.lessons[course.lessons.indexOf(activeLesson) + 1]
-                        )
-                      }
+                      onClick={() => handleSelectLesson(course.lessons[currentIndex + 1])}
                     >
                       다음 강의 <ChevronRight size={14} />
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      className="rounded-full gap-1 bg-green-600 hover:bg-green-500"
+                      onClick={() => markWatched(activeLesson.id)}
+                      disabled={watched.has(activeLesson.id)}
+                    >
+                      <CheckCircle size={14} />
+                      {watched.has(activeLesson.id) ? "수강 완료" : "완료 표시"}
                     </Button>
                   )}
                 </div>
@@ -146,16 +201,31 @@ export default function CoursePlayer({ course }: { course: Course }) {
           </AnimatePresence>
         </div>
 
-        {/* Sidebar - Curriculum */}
+        {/* Sidebar */}
         <aside className="w-full lg:w-80 xl:w-96 bg-gray-900 border-t lg:border-t-0 lg:border-l border-gray-800 flex flex-col">
           <div className="p-4 border-b border-gray-800">
-            <h2 className="font-bold text-sm text-white">커리큘럼</h2>
-            <p className="text-xs text-gray-400 mt-0.5">총 {course.lessons.length}강</p>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="font-bold text-sm text-white">커리큘럼</h2>
+              <span className="text-xs text-gray-400">
+                {watchedCount}/{totalLessons}강
+              </span>
+            </div>
+            {/* 진도 바 */}
+            <div className="w-full h-1.5 bg-gray-700 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-primary rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${progressPct}%` }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-1">{progressPct}% 완료</p>
           </div>
 
           <div className="overflow-y-auto flex-1">
             {course.lessons.map((lesson, index) => {
               const isActive = lesson.id === activeLesson.id;
+              const isWatched = watched.has(lesson.id);
               return (
                 <motion.button
                   key={lesson.id}
@@ -163,7 +233,7 @@ export default function CoursePlayer({ course }: { course: Course }) {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.04 }}
                   whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
-                  onClick={() => setActiveLesson(lesson)}
+                  onClick={() => handleSelectLesson(lesson)}
                   className={`w-full text-left px-4 py-3.5 flex items-start gap-3 transition-colors border-b border-gray-800/50 ${
                     isActive ? "bg-gray-800 border-l-2 border-l-primary" : ""
                   }`}
@@ -176,9 +246,9 @@ export default function CoursePlayer({ course }: { course: Course }) {
                       >
                         <Play size={10} className="ml-0.5 fill-white text-white" />
                       </motion.div>
-                    ) : lesson.videoId ? (
-                      <div className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center">
-                        <CheckCircle size={13} className="text-green-400" />
+                    ) : isWatched ? (
+                      <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center">
+                        <CheckCircle size={14} className="text-green-400" />
                       </div>
                     ) : (
                       <div className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-gray-500 text-xs font-bold">
@@ -188,7 +258,15 @@ export default function CoursePlayer({ course }: { course: Course }) {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium leading-snug ${isActive ? "text-white" : "text-gray-300"}`}>
+                    <p
+                      className={`text-sm font-medium leading-snug ${
+                        isActive
+                          ? "text-white"
+                          : isWatched
+                          ? "text-gray-400 line-through decoration-gray-600"
+                          : "text-gray-300"
+                      }`}
+                    >
                       {lesson.title}
                     </p>
                     <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
@@ -196,10 +274,6 @@ export default function CoursePlayer({ course }: { course: Course }) {
                       {lesson.duration}
                     </p>
                   </div>
-
-                  {!lesson.videoId && !isActive && (
-                    <Lock size={12} className="text-gray-600 shrink-0 mt-1" />
-                  )}
                 </motion.button>
               );
             })}

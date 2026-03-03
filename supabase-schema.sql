@@ -178,3 +178,26 @@ insert into lessons (id, course_id, title, duration, description, sort_order) va
 ('l7','china-sea-sourcing','현지 공장 방문 전략','40:00','공장 실사와 품질 체크 포인트.',7),
 ('l8','china-sea-sourcing','샘플 관리와 품질 검수','40:00','샘플 발주부터 최종 검수 기준 설정까지.',8)
 on conflict do nothing;
+
+-- Payments table (결제 내역)
+create table if not exists payments (
+  id             uuid not null default uuid_generate_v4(),
+  user_id        uuid not null references users(id) on delete cascade,
+  course_id      text not null references courses(id) on delete cascade,
+  payment_method text not null,  -- 'toss' | 'naver' | 'kakao' | 'card' | 'free'
+  price          text not null,
+  status         text not null default 'paid',
+  paid_at        timestamptz not null default now(),
+  created_at     timestamptz not null default now(),
+  primary key (id)
+);
+
+-- Enrollments table (수강 신청)
+create table if not exists enrollments (
+  id          uuid not null default uuid_generate_v4(),
+  user_id     uuid not null references users(id) on delete cascade,
+  course_id   text not null references courses(id) on delete cascade,
+  enrolled_at timestamptz not null default now(),
+  primary key (id),
+  unique (user_id, course_id)
+);

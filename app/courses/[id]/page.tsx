@@ -1,14 +1,17 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { auth } from "@/auth";
 import { createAdminClient } from "@/lib/supabase";
 import {
-  BookOpen, Clock, Users, Play,
+  BookOpen, Clock, Users,
   GraduationCap, Award, ChevronRight,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import EnrollButton from "./EnrollButton";
+
+export const dynamic = "force-dynamic";
 
 export default async function CourseDetailPage({
   params,
@@ -17,7 +20,7 @@ export default async function CourseDetailPage({
 }) {
   const { id } = await params;
 
-  const db = createAdminClient();
+  const [session, db] = [await auth(), createAdminClient()];
   const { data, error } = await db
     .from("courses")
     .select("*, lessons(id, title, duration, video_id, description, sort_order)")
@@ -25,6 +28,17 @@ export default async function CourseDetailPage({
     .single();
 
   if (error || !data) notFound();
+
+  let enrolled = false;
+  if (session?.user?.id) {
+    const { data: enrollment } = await db
+      .from("enrollments")
+      .select("id")
+      .eq("user_id", session.user.id)
+      .eq("course_id", id)
+      .single();
+    enrolled = !!enrollment;
+  }
 
   const lessons = (data.lessons ?? []).sort(
     (a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order
@@ -60,12 +74,6 @@ export default async function CourseDetailPage({
             {data.description}
           </p>
 
-          <div className="flex flex-wrap items-center gap-5 text-sm text-white/70">
-            <span className="flex items-center gap-1.5"><GraduationCap size={14} /> {data.instructor}</span>
-            <span className="flex items-center gap-1.5"><Clock size={14} /> {data.total_duration}</span>
-            <span className="flex items-center gap-1.5"><Users size={14} /> 수강생 {data.students}</span>
-            <span className="flex items-center gap-1.5"><BookOpen size={14} /> {lessons.length}개 강의</span>
-          </div>
         </div>
       </div>
 
@@ -108,11 +116,6 @@ export default async function CourseDetailPage({
             <div className="sticky top-24">
               <Card>
                 <CardContent className="pt-5">
-                  {/* Thumbnail preview */}
-                  <div className={`w-full h-32 bg-gradient-to-br ${data.thumbnail} rounded-lg mb-5 flex items-center justify-center`}>
-                    <Play size={36} className="text-white/50" />
-                  </div>
-
                   {/* Price */}
                   <div className="mb-5">
                     <span className={`text-3xl font-black ${data.free ? "text-primary" : "text-foreground"}`}>
@@ -121,34 +124,44 @@ export default async function CourseDetailPage({
                   </div>
 
                   {/* CTA */}
-                  <Button asChild className="w-full mb-5">
-                    <Link href={`/courses/${data.id}/player`} className="gap-2">
-                      <Play size={15} /> 수강 시작하기
-                    </Link>
-                  </Button>
+                  <EnrollButton
+                    courseId={data.id}
+                    enrolled={enrolled}
+                    loggedIn={!!session?.user?.id}
+                  />
 
                   {/* Meta */}
                   <Separator className="mb-4" />
-                  <div className="space-y-2.5 text-sm">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <BookOpen size={14} className="shrink-0" />
-                      총 {lessons.length}개 강의
+                  <div className="space-y-3 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-muted-foreground">
+                        <BookOpen size={14} /> 강의 수
+                      </span>
+                      <span className="font-medium">총 {lessons.length}강</span>
                     </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Clock size={14} className="shrink-0" />
-                      {data.total_duration}
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-muted-foreground">
+                        <Clock size={14} /> 총 시간
+                      </span>
+                      <span className="font-medium">{data.total_duration}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Users size={14} className="shrink-0" />
-                      수강생 {data.students}
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-muted-foreground">
+                        <Users size={14} /> 수강생
+                      </span>
+                      <span className="font-medium">{data.students}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Award size={14} className="shrink-0" />
-                      난이도: {data.level}
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-muted-foreground">
+                        <Award size={14} /> 난이도
+                      </span>
+                      <span className="font-medium">{data.level}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <GraduationCap size={14} className="shrink-0" />
-                      강사: {data.instructor}
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-muted-foreground">
+                        <GraduationCap size={14} /> 강사
+                      </span>
+                      <span className="font-medium">{data.instructor}</span>
                     </div>
                   </div>
                 </CardContent>

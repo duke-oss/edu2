@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation";
+import { auth } from "@/auth";
 import { createAdminClient } from "@/lib/supabase";
 import CoursePlayer from "../CoursePlayer";
 import type { Course } from "@/app/data/courses";
+
+export const dynamic = "force-dynamic";
 
 export default async function CoursePlayerPage({
   params,
@@ -10,7 +13,8 @@ export default async function CoursePlayerPage({
 }) {
   const { id } = await params;
 
-  const db = createAdminClient();
+  const [session, db] = [await auth(), createAdminClient()];
+
   const { data, error } = await db
     .from("courses")
     .select("*, lessons(id, title, duration, video_id, description, sort_order)")
@@ -45,5 +49,22 @@ export default async function CoursePlayerPage({
     lessons,
   };
 
-  return <CoursePlayer course={course} />;
+  // 시청한 강의 목록 조회
+  let watchedLessonIds: string[] = [];
+  if (session?.user?.id) {
+    const { data: progress } = await db
+      .from("lesson_progress")
+      .select("lesson_id")
+      .eq("user_id", session.user.id)
+      .eq("course_id", id);
+    watchedLessonIds = progress?.map((r) => r.lesson_id) ?? [];
+  }
+
+  return (
+    <CoursePlayer
+      course={course}
+      watchedLessonIds={watchedLessonIds}
+      userId={session?.user?.id ?? null}
+    />
+  );
 }
