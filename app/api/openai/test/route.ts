@@ -1,9 +1,15 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/admin";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
+  const admin = await requireAdmin();
+  if (!admin) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   if (!process.env.OPENAI_API_KEY) {
     return NextResponse.json(
       { error: "OPENAI_API_KEY가 설정되지 않았습니다." },

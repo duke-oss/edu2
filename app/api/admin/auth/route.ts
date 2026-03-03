@@ -4,7 +4,11 @@ import { makeAdminToken, ADMIN_COOKIE } from "@/lib/admin";
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
   const adminEmail = process.env.ADMIN_EMAIL;
-  const adminPassword = process.env.ADMIN_PASSWORD ?? "admin";
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminEmail || !adminPassword) {
+    return NextResponse.json({ error: "Admin auth env is not configured." }, { status: 500 });
+  }
 
   if (
     !email ||
