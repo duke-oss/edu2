@@ -1,13 +1,15 @@
-import { auth } from "@/auth";
+﻿import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase";
 import Link from "next/link";
+import { User, PlayCircle, MessageSquare, LockKeyhole } from "lucide-react";
 import ProfileSection from "./ProfileSection";
 import CoursesSection from "./CoursesSection";
 import InquiriesSection from "./InquiriesSection";
 import PasswordSection from "./PasswordSection";
 
 export const dynamic = "force-dynamic";
+const NOW_MS = Date.now();
 
 type EnrollmentRow = {
   id: string;
@@ -20,9 +22,12 @@ type EnrollmentRow = {
     badge: string;
     instructor: string;
     total_duration: string;
+    free: boolean;
   } | null;
   totalLessons: number;
   watchedLessons: number;
+  canRefund: boolean;
+  certificateId: string | null;
 };
 
 type InquiryRow = {
@@ -33,10 +38,10 @@ type InquiryRow = {
 };
 
 const TABS = [
-  { id: "profile", label: "프로필" },
-  { id: "courses", label: "내 강의" },
-  { id: "inquiries", label: "내 문의" },
-  { id: "password", label: "비밀번호 변경" },
+  { id: "profile", label: "프로필", icon: User },
+  { id: "courses", label: "내 강의", icon: PlayCircle },
+  { id: "inquiries", label: "내 문의", icon: MessageSquare },
+  { id: "password", label: "비밀번호 변경", icon: LockKeyhole },
 ];
 
 export default async function DashboardPage({
@@ -67,7 +72,7 @@ export default async function DashboardPage({
   if (activeTab === "courses") {
     const { data } = await db
       .from("enrollments")
-      .select("id, enrolled_at, courses(id, title, thumbnail, level, badge, instructor, total_duration)")
+      .select("id, enrolled_at, courses(id, title, thumbnail, level, badge, instructor, total_duration, free)")
       .eq("user_id", userId)
       .order("enrolled_at", { ascending: false });
 
@@ -76,33 +81,35 @@ export default async function DashboardPage({
     if (raw.length > 0) {
       const courseIds = raw.map((e) => e.courses?.id).filter(Boolean) as string[];
 
-      // 강의별 전체 레슨 수
       const { data: lessonCounts } = await db
         .from("lessons")
         .select("course_id")
         .in("course_id", courseIds);
 
-      // 유저가 시청한 레슨 수
-      const { data: watchedCounts } = await db
-        .from("lesson_progress")
-        .select("course_id")
-        .eq("user_id", userId)
-        .in("course_id", courseIds);
+      const [{ data: watchedCounts }, { data: certs }] = await Promise.all([
+        db.from("lesson_progress").select("course_id").eq("user_id", userId).in("course_id", courseIds),
+        db.from("certificates").select("id, course_id").eq("user_id", userId).in("course_id", courseIds),
+      ]);
 
       const totalMap: Record<string, number> = {};
       const watchedMap: Record<string, number> = {};
-      for (const l of lessonCounts ?? []) {
-        totalMap[l.course_id] = (totalMap[l.course_id] ?? 0) + 1;
-      }
-      for (const p of watchedCounts ?? []) {
-        watchedMap[p.course_id] = (watchedMap[p.course_id] ?? 0) + 1;
-      }
+      const certMap: Record<string, string> = {};
 
-      enrollments = raw.map((e) => ({
-        ...e,
-        totalLessons: totalMap[e.courses?.id ?? ""] ?? 0,
-        watchedLessons: watchedMap[e.courses?.id ?? ""] ?? 0,
-      }));
+      for (const l of lessonCounts ?? []) totalMap[l.course_id] = (totalMap[l.course_id] ?? 0) + 1;
+      for (const p of watchedCounts ?? []) watchedMap[p.course_id] = (watchedMap[p.course_id] ?? 0) + 1;
+      for (const c of certs ?? []) certMap[c.course_id] = c.id;
+
+      enrollments = raw.map((e) => {
+        const watched = watchedMap[e.courses?.id ?? ""] ?? 0;
+        const diffDays = (NOW_MS - new Date(e.enrolled_at).getTime()) / (1000 * 60 * 60 * 24);
+        return {
+          ...e,
+          totalLessons: totalMap[e.courses?.id ?? ""] ?? 0,
+          watchedLessons: watched,
+          canRefund: watched === 0 && diffDays <= 7,
+          certificateId: certMap[e.courses?.id ?? ""] ?? null,
+        };
+      });
     }
   }
 
@@ -112,31 +119,40 @@ export default async function DashboardPage({
       .select("id, title, category, created_at")
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
+
     inquiries = (data ?? []) as InquiryRow[];
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold mb-8">마이페이지</h1>
-
-      {/* Tab Nav */}
-      <div className="flex gap-0 border-b border-border mb-8">
-        {visibleTabs.map((t) => (
-          <Link
-            key={t.id}
-            href={`/dashboard?tab=${t.id}`}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
-              activeTab === t.id
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t.label}
-          </Link>
-        ))}
+    <div className="max-w-6xl mx-auto px-4 py-10">
+      <div className="mb-8">
+        <h1 className="text-3xl font-black tracking-tight">마이페이지</h1>
+        <p className="text-sm text-muted-foreground mt-1">프로필, 수강 현황, 문의 내역, 계정 보안을 한곳에서 관리하세요.</p>
       </div>
 
-      {/* Tab Content */}
+      <div className="rounded-2xl border border-border bg-card p-2 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {visibleTabs.map((t) => {
+            const Icon = t.icon;
+            const isActive = activeTab === t.id;
+            return (
+              <Link
+                key={t.id}
+                href={`/dashboard?tab=${t.id}`}
+                className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                  isActive
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                <Icon size={15} />
+                {t.label}
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
       {activeTab === "profile" && (
         <ProfileSection
           user={{

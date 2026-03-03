@@ -1,13 +1,13 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { User } from "lucide-react";
+import { User, Mail, CalendarDays, BadgeCheck } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 type Props = {
@@ -32,6 +32,7 @@ export default function ProfileSection({ user }: Props) {
     if (!name.trim()) return;
     setLoading(true);
     setMsg(null);
+
     try {
       const res = await fetch("/api/profile", {
         method: "PATCH",
@@ -39,11 +40,12 @@ export default function ProfileSection({ user }: Props) {
         body: JSON.stringify({ name }),
       });
       const data = await res.json();
+
       if (!res.ok) {
-        setMsg({ type: "err", text: data.error });
+        setMsg({ type: "err", text: data.error ?? "프로필 저장에 실패했습니다." });
       } else {
         await update({ name });
-        setMsg({ type: "ok", text: "이름이 변경되었습니다" });
+        setMsg({ type: "ok", text: "프로필이 업데이트되었습니다." });
         setDirty(false);
       }
     } finally {
@@ -54,75 +56,76 @@ export default function ProfileSection({ user }: Props) {
   const initials = (user.name ?? user.email).slice(0, 2).toUpperCase();
 
   return (
-    <div className="space-y-5">
-      {/* Summary card */}
-      <Card>
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+      <Card className="xl:col-span-1">
         <CardContent className="pt-6">
-          <div className="flex items-start gap-5">
-            <Avatar className="w-16 h-16 shrink-0">
+          <div className="flex items-start gap-4">
+            <Avatar className="w-16 h-16 shrink-0 ring-2 ring-primary/20">
               <AvatarImage src={user.image ?? undefined} alt={user.name ?? ""} />
               <AvatarFallback className="bg-primary/10 text-primary text-xl font-bold">
-                {user.image ? <User size={28} /> : initials}
+                {user.image ? <User size={26} /> : initials}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0">
+
+            <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap mb-1">
-                <span className="text-lg font-bold">{user.name ?? "이름 없음"}</span>
-                <Badge variant="secondary" className="text-xs">
-                  {user.hasPassword ? "이메일 가입" : "소셜 로그인"}
-                </Badge>
+                <p className="text-lg font-bold truncate">{user.name ?? "이름 미설정"}</p>
+                <Badge variant="secondary" className="text-[11px]">{user.hasPassword ? "이메일 계정" : "소셜 로그인"}</Badge>
               </div>
-              <p className="text-sm text-muted-foreground">{user.email}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                가입일 {new Date(user.createdAt).toLocaleDateString("ko-KR")}
-              </p>
+              <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+            </div>
+          </div>
+
+          <div className="mt-5 space-y-2.5 text-sm">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Mail size={14} />
+              <span className="truncate">{user.email}</span>
+            </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <CalendarDays size={14} />
+              <span>가입일 {new Date(user.createdAt).toLocaleDateString("ko-KR")}</span>
+            </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <BadgeCheck size={14} />
+              <span>{user.hasPassword ? "비밀번호 로그인 사용중" : "비밀번호 로그인 미사용"}</span>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Edit name */}
-      <Card>
-        <CardContent className="pt-6">
-          <h3 className="font-semibold mb-4">이름 변경</h3>
-          <div className="space-y-3 max-w-sm">
+      <Card className="xl:col-span-2">
+        <CardHeader>
+          <CardTitle>기본 정보 수정</CardTitle>
+          <CardDescription>이름 변경 시 내 강의와 후기, 문의 내역에 동일하게 반영됩니다.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="max-w-md space-y-4">
             <div>
               <Label>이메일</Label>
-              <Input
-                value={user.email}
-                disabled
-                className="mt-1.5 bg-muted/50"
-              />
+              <Input value={user.email} disabled className="mt-1.5 bg-muted/50" />
             </div>
+
             <div>
-              <Label htmlFor="name-field">이름</Label>
+              <Label htmlFor="profile-name">이름</Label>
               <Input
-                id="name-field"
+                id="profile-name"
                 value={name}
                 onChange={(e) => {
                   setName(e.target.value);
                   setDirty(true);
                   setMsg(null);
                 }}
-                placeholder="이름을 입력하세요"
+                placeholder="표시할 이름을 입력하세요"
                 className="mt-1.5"
               />
             </div>
+
             {msg && (
-              <p
-                className={`text-sm ${
-                  msg.type === "ok" ? "text-green-600" : "text-destructive"
-                }`}
-              >
-                {msg.text}
-              </p>
+              <p className={`text-sm ${msg.type === "ok" ? "text-green-600" : "text-destructive"}`}>{msg.text}</p>
             )}
-            <Button
-              onClick={handleSave}
-              disabled={!dirty || loading || !name.trim()}
-              size="sm"
-            >
-              {loading ? "저장 중..." : "저장"}
+
+            <Button onClick={handleSave} disabled={!dirty || loading || !name.trim()}>
+              {loading ? "저장 중..." : "변경사항 저장"}
             </Button>
           </div>
         </CardContent>

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { createClient } from "@supabase/supabase-js";
+import { sendWelcomeEmail, sendVerificationEmail } from "@/lib/email";
+import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
   const { name, email, password } = await req.json();
@@ -39,10 +41,12 @@ export async function POST(req: NextRequest) {
 
   const hashedPassword = await bcrypt.hash(password, 12);
 
+  const userName = name ?? email.split("@")[0];
   const { error } = await db.from("users").insert({
-    name: name ?? email.split("@")[0],
+    name: userName,
     email,
     password: hashedPassword,
+    // email_verified remains null until user verifies
   });
 
   if (error) {
@@ -51,6 +55,15 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+
+  // Send verification email (fire-and-forget)
+  const token = crypto.randomUUID();
+  const expires = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+  await db.from("verification_tokens").delete().eq("identifier", `verify:${email}`);
+  await db.from("verification_tokens").insert({ identifier: `verify:${email}`, token, expires });
+
+  sendVerificationEmail(email, token).catch(console.error);
+  sendWelcomeEmail(email, userName).catch(console.error);
 
   return NextResponse.json({ ok: true }, { status: 201 });
 }

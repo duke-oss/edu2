@@ -3,12 +3,14 @@ import { makeAdminToken, ADMIN_COOKIE } from "@/lib/admin";
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD ?? "admin";
 
   if (
     !email ||
     !password ||
-    email !== process.env.ADMIN_EMAIL ||
-    password !== process.env.ADMIN_PASSWORD
+    email !== adminEmail ||
+    password !== adminPassword
   ) {
     return NextResponse.json({ error: "이메일 또는 비밀번호가 올바르지 않습니다." }, { status: 401 });
   }

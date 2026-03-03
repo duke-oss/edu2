@@ -115,6 +115,12 @@ function LoginForm() {
             {loading && <Loader2 size={15} className="animate-spin" />}
             로그인
           </Button>
+
+          <p className="text-right text-sm">
+            <Link href="/forgot-password" className="text-muted-foreground hover:text-foreground">
+              비밀번호를 잊으셨나요?
+            </Link>
+          </p>
         </form>
 
         <p className="text-center text-sm text-muted-foreground">

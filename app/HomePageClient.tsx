@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { getCourseThumbnailRenderProps } from "@/lib/courseThumbnail";
 
 // ─── 카테고리 ───────────────────────────────
 const CATEGORIES = [
@@ -78,6 +79,7 @@ export default function Home({ courses }: { courses: CourseItem[] }) {
     activeCategory === "전체" ? courses
     : activeCategory === "LIVE" ? courses.filter((c) => c.badge === "LIVE")
     : courses.filter((c) => c.category === activeCategory);
+  const featuredThumb = courses[0] ? getCourseThumbnailRenderProps(courses[0].thumbnail, courses[0].title) : null;
 
   return (
     <div className="bg-background text-foreground">
@@ -154,7 +156,7 @@ export default function Home({ courses }: { courses: CourseItem[] }) {
                 <div className="absolute top-4 left-4 right-4 h-full bg-muted/60 rounded-2xl border border-border" />
                 {/* 앞 카드 */}
                 <Card className="relative shadow-lg overflow-hidden">
-                  <div className={`h-36 bg-gradient-to-br ${courses[0].thumbnail}`} />
+                  <div className={`h-36 ${featuredThumb?.className ?? "bg-muted"}`} style={featuredThumb?.style} />
                   <CardContent className="p-5">
                     <div className="flex items-center gap-2 mb-2">
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${levelColor[courses[0].level]}`}>{courses[0].level}</span>
@@ -215,64 +217,67 @@ export default function Home({ courses }: { courses: CourseItem[] }) {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredCourses.map((course, i) => (
-              <motion.div
-                key={course.id}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.35, delay: i * 0.06 }}
-              >
-                <Link href={`/courses/${course.id}`}>
-                  <Card className="overflow-hidden hover:shadow-md transition-all hover:-translate-y-0.5 gap-0 py-0 h-full">
-                    {/* 썸네일 */}
-                    <div className={`h-36 bg-gradient-to-br ${course.thumbnail} relative`}>
-                      <span className={`absolute top-3 left-3 text-[11px] font-bold px-2 py-0.5 rounded text-white ${course.badge === "LIVE" ? "bg-red-500" : "bg-black/40"}`}>
-                        {course.badge === "LIVE" ? "🔴 LIVE" : "VOD"}
-                      </span>
-                      {course.free && (
-                        <span className="absolute top-3 right-3 text-[11px] font-bold px-2 py-0.5 rounded bg-primary text-primary-foreground">FREE</span>
-                      )}
-                    </div>
-
-                    <CardContent className="p-4">
-                      {/* 카테고리 + 레벨 */}
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <span className="text-xs text-muted-foreground">{course.category}</span>
-                        <span className="text-muted-foreground/40 text-xs">·</span>
-                        <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${levelColor[course.level]}`}>{course.level}</span>
-                      </div>
-
-                      {/* 제목 */}
-                      <h3 className="font-bold text-sm leading-snug mb-2 line-clamp-2">{course.title}</h3>
-
-                      {/* 강사 */}
-                      <p className="text-xs text-muted-foreground mb-2">{course.instructor} 강사</p>
-
-                      {/* 별점 */}
-                      <div className="flex items-center gap-1 mb-3">
-                        <Star size={11} className="text-yellow-500 fill-yellow-500" />
-                        <span className="text-xs font-bold text-yellow-600">4.9</span>
-                        <span className="text-xs text-muted-foreground">({course.students})</span>
-                      </div>
-
-                      <Separator className="mb-3" />
-
-                      {/* 가격 + 메타 */}
-                      <div className="flex items-center justify-between">
-                        <span className={`font-black text-base ${course.free ? "text-primary" : "text-foreground"}`}>
-                          {course.price}
+            {filteredCourses.map((course, i) => {
+              const thumb = getCourseThumbnailRenderProps(course.thumbnail, course.title);
+              return (
+                <motion.div
+                  key={course.id}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.35, delay: i * 0.06 }}
+                >
+                  <Link href={`/courses/${course.id}`}>
+                    <Card className="overflow-hidden hover:shadow-md transition-all hover:-translate-y-0.5 gap-0 py-0 h-full">
+                      {/* 썸네일 */}
+                      <div className={`h-36 relative ${thumb.className}`} style={thumb.style}>
+                        <span className={`absolute top-3 left-3 text-[11px] font-bold px-2 py-0.5 rounded text-white ${course.badge === "LIVE" ? "bg-red-500" : "bg-black/40"}`}>
+                          {course.badge === "LIVE" ? "🔴 LIVE" : "VOD"}
                         </span>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Clock size={11} />
-                          {course.totalDuration}
-                        </div>
+                        {course.free && (
+                          <span className="absolute top-3 right-3 text-[11px] font-bold px-2 py-0.5 rounded bg-primary text-primary-foreground">FREE</span>
+                        )}
                       </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              </motion.div>
-            ))}
+
+                      <CardContent className="p-4">
+                        {/* 카테고리 + 레벨 */}
+                        <div className="flex items-center gap-1.5 mb-2">
+                          <span className="text-xs text-muted-foreground">{course.category}</span>
+                          <span className="text-muted-foreground/40 text-xs">·</span>
+                          <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${levelColor[course.level]}`}>{course.level}</span>
+                        </div>
+
+                        {/* 제목 */}
+                        <h3 className="font-bold text-sm leading-snug mb-2 line-clamp-2">{course.title}</h3>
+
+                        {/* 강사 */}
+                        <p className="text-xs text-muted-foreground mb-2">{course.instructor} 강사</p>
+
+                        {/* 별점 */}
+                        <div className="flex items-center gap-1 mb-3">
+                          <Star size={11} className="text-yellow-500 fill-yellow-500" />
+                          <span className="text-xs font-bold text-yellow-600">4.9</span>
+                          <span className="text-xs text-muted-foreground">({course.students})</span>
+                        </div>
+
+                        <Separator className="mb-3" />
+
+                        {/* 가격 + 메타 */}
+                        <div className="flex items-center justify-between">
+                          <span className={`font-black text-base ${course.free ? "text-primary" : "text-foreground"}`}>
+                            {course.price}
+                          </span>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Clock size={11} />
+                            {course.totalDuration}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>

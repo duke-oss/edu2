@@ -201,3 +201,69 @@ create table if not exists enrollments (
   primary key (id),
   unique (user_id, course_id)
 );
+
+-- Lesson progress table (레슨 시청 기록)
+create table if not exists lesson_progress (
+  id         uuid not null default uuid_generate_v4(),
+  user_id    uuid not null references users(id) on delete cascade,
+  course_id  text not null references courses(id) on delete cascade,
+  lesson_id  text not null,
+  watched_at timestamptz not null default now(),
+  primary key (id),
+  unique (user_id, course_id, lesson_id)
+);
+
+-- Migration: add refunded_at column to payments (환불 처리 일시)
+alter table payments add column if not exists refunded_at timestamptz;
+
+-- 강의 후기
+create table if not exists reviews (
+  id          uuid default uuid_generate_v4() primary key,
+  user_id     uuid not null references users(id) on delete cascade,
+  course_id   text not null references courses(id) on delete cascade,
+  rating      int  not null check (rating between 1 and 5),
+  content     text not null,
+  created_at  timestamptz not null default now(),
+  unique (user_id, course_id)
+);
+
+-- 문의 답변
+create table if not exists inquiry_replies (
+  id          uuid default uuid_generate_v4() primary key,
+  inquiry_id  uuid not null references inquiries(id) on delete cascade,
+  content     text not null,
+  created_at  timestamptz not null default now()
+);
+
+-- 수료증
+create table if not exists certificates (
+  id             uuid default uuid_generate_v4() primary key,
+  user_id        uuid not null references users(id) on delete cascade,
+  course_id      text not null references courses(id) on delete cascade,
+  issued_at      timestamptz not null default now(),
+  unique (user_id, course_id)
+);
+
+-- 쿠폰
+create table if not exists coupons (
+  id             uuid default uuid_generate_v4() primary key,
+  code           text not null unique,
+  discount_type  text not null check (discount_type in ('percent', 'amount')),
+  discount_value int  not null,
+  max_uses       int,
+  used_count     int  not null default 0,
+  expires_at     timestamptz,
+  active         boolean not null default true,
+  created_at     timestamptz not null default now()
+);
+
+-- 강의 자료
+create table if not exists course_attachments (
+  id          uuid default uuid_generate_v4() primary key,
+  course_id   text not null references courses(id) on delete cascade,
+  lesson_id   text,
+  name        text not null,
+  file_url    text not null,
+  file_size   bigint,
+  created_at  timestamptz not null default now()
+);

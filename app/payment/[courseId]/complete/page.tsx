@@ -6,6 +6,7 @@ import { CheckCircle, Play, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getCourseThumbnailRenderProps } from "@/lib/courseThumbnail";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +39,7 @@ export default async function PaymentCompletePage({
     .single();
 
   if (!course) notFound();
+  const thumb = getCourseThumbnailRenderProps(course.thumbnail, course.title);
 
   // 결제 내역 가져오기
   const { data: payment } = await db
@@ -77,7 +79,8 @@ export default async function PaymentCompletePage({
         <CardContent className="pt-5 pb-5">
           <div className="flex gap-4 items-center">
             <div
-              className={`w-16 h-16 rounded-xl bg-gradient-to-br ${course.thumbnail} shrink-0 flex items-center justify-center`}
+              className={`w-16 h-16 rounded-xl shrink-0 flex items-center justify-center ${thumb.className}`}
+              style={thumb.style}
             >
               <Play size={20} className="text-white/60" />
             </div>

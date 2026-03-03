@@ -36,7 +36,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const db = getDb();
         const { data: user } = await db
           .from("users")
-          .select("id, email, name, image, password")
+          .select("id, email, name, image, password, email_verified")
           .eq("email", credentials.email)
           .single();
 
@@ -47,6 +47,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           user.password
         );
         if (!isValid) return null;
+
+        if (!user.email_verified) {
+          throw new Error("이메일 인증을 완료해주세요.");
+        }
 
         return { id: user.id, email: user.email, name: user.name, image: user.image };
       },

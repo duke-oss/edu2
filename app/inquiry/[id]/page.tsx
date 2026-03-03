@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { Lock, Loader2, ArrowLeft, Tag, Calendar, User } from "lucide-react";
+import { useParams } from "next/navigation";
+import { Lock, Loader2, ArrowLeft, Tag, CalendarDays, User, ShieldCheck, FileText } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +22,6 @@ interface InquiryDetail {
 
 export default function InquiryDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
 
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -33,6 +32,7 @@ export default function InquiryDetailPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
+
     try {
       const res = await fetch(`/api/inquiry/${id}`, {
         method: "POST",
@@ -40,109 +40,115 @@ export default function InquiryDetailPage() {
         body: JSON.stringify({ password }),
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error); return; }
+
+      if (!res.ok) {
+        setError(data.error ?? "오류가 발생했습니다.");
+        return;
+      }
+
       setDetail(data);
     } finally {
       setLoading(false);
     }
   }
 
-  // 내용 확인 화면
   if (detail) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-10">
+      <div className="max-w-5xl mx-auto px-4 py-10 space-y-5">
         <Link
           href="/inquiry"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft size={15} /> 목록으로
         </Link>
 
         <Card>
           <CardContent className="pt-6">
-            {/* 메타 정보 */}
-            <div className="flex flex-wrap gap-2 mb-4">
+            <div className="flex flex-wrap items-center gap-2 mb-4">
               <Badge variant="secondary" className="gap-1">
                 <Tag size={11} /> {detail.category}
               </Badge>
               <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                <User size={11} />
-                {detail.users?.name || detail.users?.email?.split("@")[0] || "익명"}
+                <User size={11} /> {detail.users?.name || detail.users?.email?.split("@")[0] || "익명"}
               </span>
               <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                <Calendar size={11} />
-                {new Date(detail.created_at).toLocaleDateString("ko-KR")}
+                <CalendarDays size={11} /> {new Date(detail.created_at).toLocaleDateString("ko-KR")}
               </span>
             </div>
 
-            {/* 제목 */}
-            <h1 className="text-xl font-bold mb-6 pb-6 border-b border-border">
-              {detail.title}
-            </h1>
+            <h1 className="text-2xl font-black tracking-tight mb-5 pb-5 border-b border-border">{detail.title}</h1>
 
-            {/* 내용 */}
-            <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap text-sm">
-              {detail.content}
-            </p>
+            <div className="rounded-xl border border-border bg-muted/20 px-5 py-4">
+              <p className="text-sm leading-7 whitespace-pre-wrap text-foreground/90">{detail.content}</p>
+            </div>
           </CardContent>
         </Card>
-
-        <Button
-          variant="ghost"
-          className="mt-4 text-muted-foreground"
-          onClick={() => router.push("/inquiry")}
-        >
-          ← 목록으로 돌아가기
-        </Button>
       </div>
     );
   }
 
-  // 비밀번호 입력 화면
   return (
-    <div className="max-w-md mx-auto px-4 py-10">
+    <div className="max-w-5xl mx-auto px-4 py-10">
       <Link
         href="/inquiry"
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-8"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-5"
       >
         <ArrowLeft size={15} /> 목록으로
       </Link>
 
-      <Card>
-        <CardHeader className="text-center">
-          <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-2">
-            <Lock size={24} className="text-primary" />
-          </div>
-          <CardTitle>비밀글입니다</CardTitle>
-          <CardDescription>작성 시 설정한 비밀번호를 입력하세요</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleVerify} className="space-y-3">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <div className="space-y-1.5">
-              <Label htmlFor="password">비밀번호</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="비밀번호 입력"
-                required
-                autoFocus
-                className="text-center"
-              />
-            </div>
-            <Button type="submit" disabled={loading} className="w-full">
-              {loading && <Loader2 size={15} className="animate-spin" />}
-              확인
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-5 items-start">
+        <Card>
+          <CardHeader>
+            <CardTitle className="inline-flex items-center gap-2">
+              <Lock size={18} /> 비밀글 확인
+            </CardTitle>
+            <CardDescription>문의 작성 시 설정한 비밀번호를 입력하면 내용을 확인할 수 있습니다.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleVerify} className="max-w-md space-y-4">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              <div className="space-y-1.5">
+                <Label htmlFor="password">비밀번호</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="비밀번호를 입력하세요"
+                  required
+                  autoFocus
+                />
+              </div>
+
+              <Button type="submit" disabled={loading} className="min-w-[120px] gap-1.5">
+                {loading && <Loader2 size={15} className="animate-spin" />}
+                확인
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="inline-flex items-center gap-2 text-base">
+              <ShieldCheck size={16} /> 안내
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2.5 text-sm text-muted-foreground">
+            <p className="inline-flex items-start gap-2">
+              <FileText size={14} className="mt-0.5" />
+              비밀번호를 잊은 경우 동일 문의를 새로 작성해 주세요.
+            </p>
+            <p>입력한 비밀번호는 문의 조회용으로만 사용됩니다.</p>
+            <p>문의 내역은 마이페이지 &gt; 내 문의에서도 확인할 수 있습니다.</p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

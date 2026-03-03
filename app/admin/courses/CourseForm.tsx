@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { getCourseThumbnailRenderProps, isImageThumbnail } from "@/lib/courseThumbnail";
 
 interface Lesson {
   id: string;
@@ -38,15 +39,6 @@ interface CourseFormProps {
   initialData?: Partial<CourseFormData>;
   mode: "new" | "edit";
 }
-
-const thumbnailOptions = [
-  { label: "Blue", value: "from-blue-600 to-blue-400" },
-  { label: "Violet", value: "from-violet-600 to-violet-400" },
-  { label: "Emerald", value: "from-emerald-600 to-emerald-400" },
-  { label: "Amber", value: "from-amber-500 to-amber-300" },
-  { label: "Rose", value: "from-rose-600 to-rose-400" },
-  { label: "Indigo", value: "from-indigo-600 to-indigo-400" },
-];
 
 const defaultLesson = (): Lesson => ({
   id: `l${Date.now()}`,
@@ -80,6 +72,7 @@ function extractYoutubeId(input: string): string {
 export default function CourseForm({ initialData, mode }: CourseFormProps) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
   const [form, setForm] = useState<CourseFormData>({
@@ -90,7 +83,7 @@ export default function CourseForm({ initialData, mode }: CourseFormProps) {
     level: initialData?.level ?? "입문",
     instructor: initialData?.instructor ?? "",
     total_duration: initialData?.total_duration ?? "",
-    thumbnail: initialData?.thumbnail ?? "from-blue-600 to-blue-400",
+    thumbnail: initialData?.thumbnail ?? "",
     badge: initialData?.badge ?? "VOD",
     price: initialData?.price ?? "",
     free: initialData?.free ?? false,
@@ -120,6 +113,33 @@ export default function CourseForm({ initialData, mode }: CourseFormProps) {
     }));
   }
 
+  async function uploadThumbnail(file: File) {
+    setUploading(true);
+    setError("");
+    try {
+      const body = new FormData();
+      body.append("file", file);
+
+      const res = await fetch("/api/admin/courses/upload-thumbnail", {
+        method: "POST",
+        body,
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error ?? "썸네일 업로드에 실패했습니다.");
+        return;
+      }
+
+      const data = await res.json();
+      updateField("thumbnail", data.url);
+    } catch {
+      setError("썸네일 업로드 중 오류가 발생했습니다.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -144,6 +164,8 @@ export default function CourseForm({ initialData, mode }: CourseFormProps) {
       setError(data.error ?? "저장에 실패했습니다.");
     }
   }
+
+  const preview = getCourseThumbnailRenderProps(form.thumbnail, form.title);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
@@ -234,25 +256,47 @@ export default function CourseForm({ initialData, mode }: CourseFormProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label className="mb-1.5 block">썸네일 색상</Label>
-              <Select value={form.thumbnail} onValueChange={(v) => updateField("thumbnail", v)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {thumbnailOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      <span className="flex items-center gap-2">
-                        <span className={`inline-block w-4 h-4 rounded bg-gradient-to-br ${opt.value}`} />
-                        {opt.label}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="thumbnailUpload" className="mb-1.5 block">썸네일 이미지</Label>
+              <Input
+                id="thumbnailUpload"
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  void uploadThumbnail(file);
+                  e.currentTarget.value = "";
+                }}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                JPG/PNG/WebP, 최대 5MB
+              </p>
+              {uploading && <p className="text-xs text-primary mt-1">업로드 중...</p>}
             </div>
+            <div>
+              <Label htmlFor="thumbnail" className="mb-1.5 block">썸네일 URL</Label>
+              <Input
+                id="thumbnail"
+                value={form.thumbnail}
+                onChange={(e) => updateField("thumbnail", e.target.value)}
+                placeholder="/uploads/courses/example.jpg"
+              />
+              {!isImageThumbnail(form.thumbnail) && form.thumbnail.trim() && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  이미지 URL을 입력하면 카드에 실제 이미지로 표시됩니다.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <Label className="mb-1.5 block">미리보기</Label>
+            <div className={`h-36 rounded-xl border border-border ${preview.className}`} style={preview.style} />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label className="mb-1.5 block">유형</Label>
               <Select value={form.badge} onValueChange={(v) => updateField("badge", v)}>

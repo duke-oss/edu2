@@ -1,7 +1,6 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Rocket, LogOut, User } from "lucide-react";
@@ -25,7 +24,7 @@ function NavAuth() {
               <User size={14} />
             </AvatarFallback>
           </Avatar>
-          <span className="text-sm font-medium text-muted-foreground max-w-[100px] truncate">
+          <span className="text-sm font-medium text-muted-foreground max-w-[120px] truncate">
             {session.user.name ?? session.user.email}
           </span>
         </Link>
@@ -35,8 +34,7 @@ function NavAuth() {
           onClick={() => signOut({ callbackUrl: "/" })}
           className="gap-1 text-muted-foreground"
         >
-          <LogOut size={15} />
-          로그아웃
+          <LogOut size={15} /> 로그아웃
         </Button>
       </div>
     );
@@ -71,7 +69,6 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          {/* Logo */}
           <Link href="/" className="flex-shrink-0 flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
               <Rocket size={18} fill="currentColor" />
@@ -79,7 +76,6 @@ export default function Navbar() {
             <span className="font-bold text-xl tracking-tight">Sellernote</span>
           </Link>
 
-          {/* Menu */}
           <div className="hidden md:flex space-x-1">
             {NAV_ITEMS.map((item) => (
               <Button
@@ -94,7 +90,6 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Auth */}
           <div className="hidden md:flex items-center">
             <NavAuth />
           </div>

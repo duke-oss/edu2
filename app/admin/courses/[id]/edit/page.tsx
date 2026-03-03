@@ -2,6 +2,7 @@ import { requireAdmin } from "@/lib/admin";
 import { redirect, notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase";
 import CourseForm from "../../CourseForm";
+import AttachmentManager from "../AttachmentManager";
 
 export const dynamic = "force-dynamic";
 
@@ -16,11 +17,18 @@ export default async function EditCoursePage({
   const { id } = await params;
   const db = createAdminClient();
 
-  const { data, error } = await db
-    .from("courses")
-    .select("*, lessons(id, title, duration, video_id, description, sort_order)")
-    .eq("id", id)
-    .single();
+  const [{ data, error }, { data: attachments }] = await Promise.all([
+    db
+      .from("courses")
+      .select("*, lessons(id, title, duration, video_id, description, sort_order)")
+      .eq("id", id)
+      .single(),
+    db
+      .from("course_attachments")
+      .select("*")
+      .eq("course_id", id)
+      .order("created_at", { ascending: true }),
+  ]);
 
   if (error || !data) notFound();
 
@@ -55,6 +63,7 @@ export default async function EditCoursePage({
       <h1 className="text-2xl font-bold mb-1">강의 수정</h1>
       <p className="text-muted-foreground text-sm mb-8">{data.title}</p>
       <CourseForm mode="edit" initialData={initialData} />
+      <AttachmentManager courseId={id} initialAttachments={attachments ?? []} />
     </div>
   );
 }

@@ -1,11 +1,12 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import "./globals.css";
 import Providers from "./components/Providers";
 import Navbar from "./components/Navbar";
+import EducationFooter from "./components/EducationFooter";
 
 export const metadata: Metadata = {
-  title: "Sellernote - 글로벌 무역, 더 쉽고 단순하게",
-  description: "국제 무역의 장벽을 낮추는 스마트 디지털 물류 시스템",
+  title: "Sellernote - 글로벌 무역, 쉽고 빠르게",
+  description: "국제무역 학습부터 물류 실무까지, Sellernote 교육 플랫폼",
 };
 
 export default function RootLayout({
@@ -25,6 +26,7 @@ export default function RootLayout({
         <Providers>
           <Navbar />
           {children}
+          <EducationFooter />
         </Providers>
       </body>
     </html>

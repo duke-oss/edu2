@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
-import { LayoutDashboard, Users, BookOpen, MessageSquare } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, MessageSquare, Tag, Paperclip } from "lucide-react";
 import AdminLogout from "./AdminLogout";
 
 const navItems = [
@@ -9,6 +9,7 @@ const navItems = [
   { href: "/admin/users", label: "사용자 관리", icon: Users },
   { href: "/admin/courses", label: "강의 관리", icon: BookOpen },
   { href: "/admin/inquiries", label: "문의 관리", icon: MessageSquare },
+  { href: "/admin/coupons", label: "쿠폰 관리", icon: Tag },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
