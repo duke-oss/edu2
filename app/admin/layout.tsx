@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
-import { LayoutDashboard, Users, BookOpen, MessageSquare, Tag, Paperclip, FileText, MessagesSquare } from "lucide-react";
+import { createAdminClient } from "@/lib/supabase";
+import { LayoutDashboard, Users, BookOpen, MessageSquare, Tag, FileText, MessagesSquare } from "lucide-react";
 import AdminLogout from "./AdminLogout";
 
 const navItems = [
@@ -17,6 +18,13 @@ const navItems = [
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const admin = await requireAdmin();
   if (!admin) redirect("/admin-login");
+  const db = createAdminClient();
+
+  const { count: unreadChatCount } = await db
+    .from("chat_messages")
+    .select("id", { count: "exact", head: true })
+    .eq("sender_type", "user")
+    .is("read_at", null);
 
   return (
     <div className="flex min-h-screen bg-muted/30">
@@ -34,7 +42,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               className="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
               <Icon size={15} />
-              {label}
+              <span className="flex-1">{label}</span>
+              {href === "/admin/chat" && (unreadChatCount ?? 0) > 0 && (
+                <span className="inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-semibold text-white">
+                  {unreadChatCount! > 99 ? "99+" : unreadChatCount}
+                </span>
+              )}
             </Link>
           ))}
         </nav>

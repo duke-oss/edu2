@@ -2,11 +2,12 @@
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase";
 import Link from "next/link";
-import { User, PlayCircle, MessageSquare } from "lucide-react";
+import { User, PlayCircle, MessageSquare, Bell } from "lucide-react";
 import ProfileSection from "./ProfileSection";
 import CoursesSection from "./CoursesSection";
 import InquiriesSection from "./InquiriesSection";
 import PasswordSection from "./PasswordSection";
+import NotificationSection from "./NotificationSection";
 
 export const dynamic = "force-dynamic";
 const NOW_MS = Date.now();
@@ -41,6 +42,7 @@ const TABS = [
   { id: "courses", label: "내 강의", icon: PlayCircle },
   { id: "profile", label: "프로필/보안", icon: User },
   { id: "inquiries", label: "내 문의", icon: MessageSquare },
+  { id: "notifications", label: "알림", icon: Bell },
 ];
 
 export default async function DashboardPage({
@@ -57,7 +59,7 @@ export default async function DashboardPage({
 
   const { data: user } = await db
     .from("users")
-    .select("id, name, email, image, created_at, password")
+    .select("id, name, email, image, created_at, password, notify_inquiry_reply_email")
     .eq("id", userId)
     .single();
 
@@ -125,11 +127,11 @@ export default async function DashboardPage({
     <div className="max-w-6xl mx-auto px-4 py-10">
       <div className="mb-8">
         <h1 className="text-3xl font-black tracking-tight">마이페이지</h1>
-        <p className="text-sm text-muted-foreground mt-1">프로필, 수강 현황, 문의 내역, 계정 보안을 한곳에서 관리하세요.</p>
+        <p className="text-sm text-muted-foreground mt-1">프로필, 수강 현황, 문의 내역, 알림 설정, 계정 보안을 한곳에서 관리하세요.</p>
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-2 mb-8">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           {TABS.map((t) => {
             const Icon = t.icon;
             const isActive = activeTab === t.id;
@@ -168,6 +170,11 @@ export default async function DashboardPage({
       )}
       {activeTab === "courses" && <CoursesSection enrollments={enrollments} />}
       {activeTab === "inquiries" && <InquiriesSection inquiries={inquiries} />}
+      {activeTab === "notifications" && (
+        <NotificationSection
+          initialNotifyInquiryReplyEmail={user?.notify_inquiry_reply_email ?? true}
+        />
+      )}
     </div>
   );
 }

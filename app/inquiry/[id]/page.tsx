@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { Lock, Loader2, ArrowLeft, Tag, CalendarDays, User, ShieldCheck, FileText } from "lucide-react";
+import { Lock, Loader2, ArrowLeft, Tag, CalendarDays, User } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,11 @@ interface InquiryDetail {
   content: string;
   created_at: string;
   users: { name: string | null; email: string | null } | null;
+  replies: Array<{
+    id: string;
+    content: string;
+    created_at: string;
+  }>;
 }
 
 export default function InquiryDetailPage() {
@@ -81,6 +86,28 @@ export default function InquiryDetailPage() {
             <div className="rounded-xl border border-border bg-muted/20 px-5 py-4">
               <p className="text-sm leading-7 whitespace-pre-wrap text-foreground/90">{detail.content}</p>
             </div>
+
+            {detail.replies.length > 0 && (
+              <div className="mt-5 space-y-3">
+                <p className="text-sm font-semibold">관리자 답변</p>
+                {detail.replies.map((reply) => (
+                  <div
+                    key={reply.id}
+                    className="rounded-xl border border-primary/20 bg-primary/5 px-5 py-4"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold text-primary">답변</span>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(reply.created_at).toLocaleString("ko-KR")}
+                      </span>
+                    </div>
+                    <p className="text-sm leading-7 whitespace-pre-wrap text-foreground/90">
+                      {reply.content}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -96,7 +123,7 @@ export default function InquiryDetailPage() {
         <ArrowLeft size={15} /> 목록으로
       </Link>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-5 items-start">
+      <div>
         <Card>
           <CardHeader>
             <CardTitle className="inline-flex items-center gap-2">
@@ -130,22 +157,6 @@ export default function InquiryDetailPage() {
                 확인
               </Button>
             </form>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="inline-flex items-center gap-2 text-base">
-              <ShieldCheck size={16} /> 안내
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2.5 text-sm text-muted-foreground">
-            <p className="inline-flex items-start gap-2">
-              <FileText size={14} className="mt-0.5" />
-              비밀번호를 잊은 경우 동일 문의를 새로 작성해 주세요.
-            </p>
-            <p>입력한 비밀번호는 문의 조회용으로만 사용됩니다.</p>
-            <p>문의 내역은 마이페이지 &gt; 내 문의에서도 확인할 수 있습니다.</p>
           </CardContent>
         </Card>
       </div>

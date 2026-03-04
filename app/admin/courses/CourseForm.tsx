@@ -17,7 +17,6 @@ interface Lesson {
   duration: string;
   description: string;
   video_id: string;
-  is_preview: boolean;
 }
 
 interface CourseFormData {
@@ -47,7 +46,6 @@ const defaultLesson = (): Lesson => ({
   duration: "",
   description: "",
   video_id: "",
-  is_preview: false,
 });
 
 function extractYoutubeId(input: string): string {
@@ -411,18 +409,6 @@ export default function CourseForm({ initialData, mode }: CourseFormProps) {
                     onBlur={(e) => updateLesson(index, "video_id", extractYoutubeId(e.target.value))}
                     placeholder="YouTube URL / Vimeo ID (예: 76979871)"
                   />
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id={`preview-${index}`}
-                    checked={lesson.is_preview}
-                    onChange={(e) => updateLesson(index, "is_preview", e.target.checked)}
-                    className="w-4 h-4 accent-primary"
-                  />
-                  <Label htmlFor={`preview-${index}`} className="text-xs cursor-pointer">
-                    무료 미리보기 강의 (비수강자 공개)
-                  </Label>
                 </div>
               </div>
             ))}

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const CATEGORIES = [
@@ -94,9 +94,6 @@ export default function InquiryNewPage() {
         <div className="rounded-2xl border border-border bg-card p-6 sm:p-7">
           <p className="text-xs font-semibold tracking-wide text-primary uppercase mb-2">Support Ticket</p>
           <h1 className="text-3xl font-black tracking-tight">문의 작성</h1>
-          <p className="text-sm text-muted-foreground mt-2">
-            문제 상황을 구체적으로 작성해주시면 더 빠르고 정확하게 도와드릴 수 있습니다.
-          </p>
         </div>
       </div>
 
@@ -106,7 +103,6 @@ export default function InquiryNewPage() {
             <CardTitle className="inline-flex items-center gap-2">
               <MessageSquareText size={18} /> 문의 내용 입력
             </CardTitle>
-            <CardDescription>필수 항목을 입력하고 제출해주세요.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-5">

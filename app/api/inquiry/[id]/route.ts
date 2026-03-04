@@ -31,7 +31,21 @@ export async function POST(
     return NextResponse.json({ error: "비밀번호가 올바르지 않습니다." }, { status: 401 });
   }
 
+  const { data: replies, error: repliesError } = await db
+    .from("inquiry_replies")
+    .select("id, content, created_at")
+    .eq("inquiry_id", id)
+    .order("created_at", { ascending: true });
+
+  if (repliesError) {
+    return NextResponse.json({ error: "답변 조회 중 오류가 발생했습니다." }, { status: 500 });
+  }
+
   // 비밀번호 해시 제외하고 반환
-  const { password_hash: _, ...safe } = data;
-  return NextResponse.json(safe);
+  const { password_hash, ...safe } = data;
+  void password_hash;
+  return NextResponse.json({
+    ...safe,
+    replies: replies ?? [],
+  });
 }

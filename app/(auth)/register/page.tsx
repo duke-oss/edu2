@@ -39,8 +39,7 @@ export default function RegisterPage() {
         return;
       }
 
-      await signIn("credentials", { email, password, callbackUrl: "/" });
-      router.push("/");
+      router.push("/verify-email");
     } finally {
       setLoading(false);
     }

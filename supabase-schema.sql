@@ -15,6 +15,9 @@ create table if not exists users (
   primary key (id)
 );
 
+alter table users
+add column if not exists notify_inquiry_reply_email boolean not null default true;
+
 -- OAuth accounts table (linked to users)
 create table if not exists accounts (
   id                   uuid not null default uuid_generate_v4(),

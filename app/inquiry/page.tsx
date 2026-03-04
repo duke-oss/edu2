@@ -1,10 +1,9 @@
 ﻿import Link from "next/link";
 import { auth } from "@/auth";
 import { createClient } from "@supabase/supabase-js";
-import { Lock, PenLine, ChevronRight, FileText, CalendarDays, MessageSquareMore } from "lucide-react";
+import { Lock, PenLine, ChevronRight, MessageSquareMore } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 
 const db = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
@@ -33,8 +32,6 @@ export default async function InquiryListPage() {
     .order("created_at", { ascending: false });
 
   const items = (list ?? []) as InquiryRow[];
-  const thisMonth = new Date().getMonth();
-  const monthlyCount = items.filter((item) => new Date(item.created_at).getMonth() === thisMonth).length;
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10 space-y-6">
@@ -62,25 +59,6 @@ export default async function InquiryListPage() {
             </Button>
           )}
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <Card>
-          <CardContent className="pt-5">
-            <p className="text-xs text-muted-foreground mb-1 inline-flex items-center gap-1.5">
-              <FileText size={12} /> 전체 문의
-            </p>
-            <p className="text-2xl font-bold">{items.length}건</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-5">
-            <p className="text-xs text-muted-foreground mb-1 inline-flex items-center gap-1.5">
-              <CalendarDays size={12} /> 이번 달 문의
-            </p>
-            <p className="text-2xl font-bold">{monthlyCount}건</p>
-          </CardContent>
-        </Card>
       </div>
 
       <div className="rounded-2xl border border-border overflow-hidden bg-card">

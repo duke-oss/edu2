@@ -22,7 +22,7 @@ export async function POST(
   // Get inquiry info for email
   const { data: inquiry } = await db
     .from("inquiries")
-    .select("title, users(email)")
+    .select("title, users(email, notify_inquiry_reply_email)")
     .eq("id", id)
     .single();
 
@@ -36,12 +36,39 @@ export async function POST(
   }
 
   // Send email notification (fire-and-forget)
-  if (inquiry) {
-    const userEmail = (inquiry.users as { email?: string } | null)?.email;
-    if (userEmail) {
-      sendInquiryReplyEmail(userEmail, inquiry.title, content.trim()).catch(console.error);
-    }
+  if (!inquiry) {
+    return NextResponse.json({ ok: true, emailSent: false, reason: "inquiry_not_found" });
   }
 
-  return NextResponse.json({ ok: true });
+  const userRel = inquiry.users as
+    | { email?: string; notify_inquiry_reply_email?: boolean | null }
+    | Array<{ email?: string; notify_inquiry_reply_email?: boolean | null }>
+    | null;
+
+  const userInfo = Array.isArray(userRel) ? userRel[0] : userRel;
+  const userEmail = userInfo?.email?.trim();
+  const notifyEnabled = userInfo?.notify_inquiry_reply_email ?? true;
+
+  if (!userEmail) {
+    return NextResponse.json({ ok: true, emailSent: false, reason: "no_user_email" });
+  }
+
+  if (!notifyEnabled) {
+    return NextResponse.json({ ok: true, emailSent: false, reason: "notification_disabled" });
+  }
+
+  try {
+    await sendInquiryReplyEmail(userEmail, inquiry.title, content.trim());
+    return NextResponse.json({ ok: true, emailSent: true });
+  } catch (mailError) {
+    console.error("[inquiry-reply] email send failed:", mailError);
+    return NextResponse.json(
+      {
+        ok: true,
+        emailSent: false,
+        reason: "email_send_failed",
+      },
+      { status: 200 }
+    );
+  }
 }

@@ -71,11 +71,19 @@ export async function GET() {
       );
     }
 
-    const { data: conv } = await db
+    const { data: convRows, error: convErr } = await db
       .from("chat_conversations")
       .select("id")
       .eq("user_id", userId)
-      .maybeSingle();
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    if (convErr) {
+      console.error("[chat] conversation fetch failed:", convErr);
+      return NextResponse.json({ error: "대화 조회 실패" }, { status: 500 });
+    }
+
+    const conv = convRows?.[0];
 
     if (!conv) {
       return NextResponse.json({ messages: [], unreadCount: 0 });
@@ -138,36 +146,62 @@ export async function POST(req: NextRequest) {
 
     const now = new Date().toISOString();
 
-    // conversation upsert (1 user = 1 conversation)
-    const { data: conv, error: convErr } = await db
+    const { data: existingRows, error: existingErr } = await db
       .from("chat_conversations")
-      .upsert(
-        { user_id: userId, last_message_at: now },
-        { onConflict: "user_id" }
-      )
       .select("id")
-      .single();
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(1);
 
-    if (convErr || !conv) {
-      console.error("[chat] conversation upsert failed:", convErr);
-      return NextResponse.json({ error: "대화 생성 실패" }, { status: 500 });
+    if (existingErr) {
+      console.error("[chat] conversation lookup failed:", existingErr);
+      return NextResponse.json(
+        { error: `대화 조회 실패: ${existingErr.message}` },
+        { status: 500 }
+      );
     }
 
-    // last_message_at 업데이트
-    await db
-      .from("chat_conversations")
-      .update({ last_message_at: now })
-      .eq("id", conv.id);
+    let conversationId = existingRows?.[0]?.id ?? null;
+
+    if (!conversationId) {
+      const { data: createdConv, error: createErr } = await db
+        .from("chat_conversations")
+        .insert({ user_id: userId, last_message_at: now })
+        .select("id")
+        .single();
+
+      if (createErr || !createdConv?.id) {
+        console.error("[chat] conversation create failed:", createErr);
+        return NextResponse.json(
+          { error: `대화 생성 실패: ${createErr?.message ?? "unknown error"}` },
+          { status: 500 }
+        );
+      }
+
+      conversationId = createdConv.id;
+    } else {
+      const { error: updateErr } = await db
+        .from("chat_conversations")
+        .update({ last_message_at: now })
+        .eq("id", conversationId);
+
+      if (updateErr) {
+        console.error("[chat] conversation update failed:", updateErr);
+      }
+    }
 
     const { data: msg, error: msgErr } = await db
       .from("chat_messages")
-      .insert({ conversation_id: conv.id, sender_type: "user", content: content.trim() })
+      .insert({ conversation_id: conversationId, sender_type: "user", content: content.trim() })
       .select("id, sender_type, content, created_at, read_at")
       .single();
 
     if (msgErr) {
       console.error("[chat] message insert failed:", msgErr);
-      return NextResponse.json({ error: "메시지 저장 실패" }, { status: 500 });
+      return NextResponse.json(
+        { error: `메시지 저장 실패: ${msgErr.message}` },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ message: msg }, { status: 201 });
