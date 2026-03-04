@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import {
   Ship, Package, FileText, ShieldCheck, Handshake,
-  Globe, BookOpen, TrendingUp, Leaf, ShoppingCart, Scale, Lightbulb,
+  Globe, BookOpen, TrendingUp,
   Star, Users, GraduationCap, Clock, ArrowRight,
   ChevronRight, Sparkles, BarChart2, FileCheck, Truck, Search,
 } from "lucide-react";
@@ -25,15 +25,16 @@ const CATEGORIES = [
   { label: "LIVE", icon: TrendingUp, id: "LIVE" },
 ];
 
-// ─── 블로그 ─────────────────────────────────
-const BLOGS = [
-  { icon: TrendingUp, category: "무역 동향", title: "2025년 해상 운임 동향과 수입업체 대응 전략", date: "2025.01.15", readTime: "5분" },
-  { icon: FileText, category: "무역 서류", title: "Letter of Credit 개설부터 네고까지 완벽 가이드", date: "2025.01.08", readTime: "8분" },
-  { icon: Leaf, category: "통관·관세", title: "FTA 원산지 증명서 활용으로 관세 절감하는 법", date: "2024.12.28", readTime: "6분" },
-  { icon: ShoppingCart, category: "소싱 전략", title: "알리바바 소싱 시 절대 하지 말아야 할 실수 10가지", date: "2024.12.20", readTime: "7분" },
-  { icon: Scale, category: "법규·규정", title: "수입 금지·제한 품목 완벽 정리 (2025년 최신판)", date: "2024.12.10", readTime: "9분" },
-  { icon: Lightbulb, category: "실전 사례", title: "월 매출 3억 달성한 수입업체의 물류 시스템 공개", date: "2024.12.03", readTime: "10분" },
-];
+// ─── 블로그 타입 ─────────────────────────────
+interface BlogPostItem {
+  id: string;
+  title: string;
+  slug: string;
+  category: string;
+  excerpt: string;
+  readTime: string;
+  date: string;
+}
 
 // ─── 강사 ────────────────────────────────────
 const INSTRUCTORS = [
@@ -72,7 +73,7 @@ interface CourseItem {
   students: string;
 }
 
-export default function Home({ courses }: { courses: CourseItem[] }) {
+export default function Home({ courses, blogPosts = [] }: { courses: CourseItem[]; blogPosts?: BlogPostItem[] }) {
   const [activeCategory, setActiveCategory] = useState("전체");
 
   const filteredCourses =
@@ -393,41 +394,49 @@ export default function Home({ courses }: { courses: CourseItem[] }) {
         </div>
       </section>
 
-      {/* ── 블로그 / 자료실 ──────────────────────────────── */}
+      {/* ── 블로그 ──────────────────────────────── */}
       <section className="py-14 bg-muted/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <p className="text-primary text-sm font-semibold mb-1">자료실 & 블로그</p>
+              <p className="text-primary text-sm font-semibold mb-1">블로그</p>
               <h2 className="text-xl font-black">실무에 바로 쓰는 무역 지식</h2>
             </div>
-            <Button variant="ghost" size="sm" className="gap-1 text-primary">
-              전체보기 <ChevronRight size={14} />
+            <Button variant="ghost" size="sm" className="gap-1 text-primary" asChild>
+              <Link href="/blog">전체보기 <ChevronRight size={14} /></Link>
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {BLOGS.map((blog, i) => (
-              <motion.div
-                key={blog.title}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.35, delay: i * 0.06 }}
-              >
-                <Card className="p-5 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer h-full flex flex-col">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Badge variant="secondary" className="text-xs">{blog.category}</Badge>
-                  </div>
-                  <h3 className="font-bold text-sm leading-snug flex-1 mb-4">{blog.title}</h3>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{blog.date}</span>
-                    <span>읽기 {blog.readTime}</span>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+          {blogPosts.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground text-sm">
+              곧 새로운 무역 인사이트를 업로드할 예정입니다
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {blogPosts.map((post, i) => (
+                <motion.div
+                  key={post.id}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.35, delay: i * 0.06 }}
+                >
+                  <Link href={`/blog/${post.slug}`} className="group block h-full">
+                    <Card className="p-5 hover:shadow-md hover:-translate-y-0.5 transition-all h-full flex flex-col">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Badge variant="secondary" className="text-xs">{post.category}</Badge>
+                      </div>
+                      <h3 className="font-bold text-sm leading-snug flex-1 mb-4 group-hover:text-primary transition-colors">{post.title}</h3>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{post.date}</span>
+                        <span>읽기 {post.readTime}</span>
+                      </div>
+                    </Card>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -461,39 +470,6 @@ export default function Home({ courses }: { courses: CourseItem[] }) {
           </motion.div>
         </div>
       </section>
-
-      {/* ── Footer ───────────────────────────────────────── */}
-      <footer className="bg-muted/40 border-t border-border py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between gap-10 mb-10">
-            <div>
-              <p className="font-black text-lg mb-2">Sellernote</p>
-              <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
-                수입무역 교육 · 물류 · SaaS 생태계.<br />
-                무역을 쉽게 만드는 사람들.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-x-12 gap-y-6 text-sm">
-              <div className="space-y-2">
-                <p className="font-semibold text-xs uppercase tracking-wide text-muted-foreground mb-3">강의</p>
-                <Link href="/courses" className="block text-muted-foreground hover:text-foreground transition-colors">온라인 강의</Link>
-                <Link href="/offline" className="block text-muted-foreground hover:text-foreground transition-colors">오프라인 강의</Link>
-              </div>
-              <div className="space-y-2">
-                <p className="font-semibold text-xs uppercase tracking-wide text-muted-foreground mb-3">회사</p>
-                <Link href="/about" className="block text-muted-foreground hover:text-foreground transition-colors">회사소개</Link>
-                <Link href="/inquiry" className="block text-muted-foreground hover:text-foreground transition-colors">문의하기</Link>
-                <a href="mailto:api@seller-note.com" className="block text-muted-foreground hover:text-foreground transition-colors">API 문의</a>
-              </div>
-            </div>
-          </div>
-          <Separator className="mb-6" />
-          <div className="flex flex-col md:flex-row justify-between items-center gap-3 text-xs text-muted-foreground">
-            <p>© 2025 주식회사 셀러노트. All rights reserved.</p>
-            <p>api@seller-note.com</p>
-          </div>
-        </div>
-      </footer>
 
     </div>
   );

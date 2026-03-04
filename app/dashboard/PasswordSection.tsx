@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useState } from "react";
-import { ShieldCheck, KeyRound } from "lucide-react";
+import { KeyRound } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,22 +48,8 @@ export default function PasswordSection() {
   }
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-      <Card className="xl:col-span-1">
-        <CardHeader>
-          <CardTitle className="inline-flex items-center gap-2">
-            <ShieldCheck size={18} /> 보안 안내
-          </CardTitle>
-          <CardDescription>계정 보호를 위해 정기적인 비밀번호 변경을 권장합니다.</CardDescription>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground space-y-2">
-          <p>• 8자 이상으로 설정하세요.</p>
-          <p>• 영문, 숫자, 특수문자를 함께 사용하세요.</p>
-          <p>• 다른 사이트와 동일한 비밀번호는 피하세요.</p>
-        </CardContent>
-      </Card>
-
-      <Card className="xl:col-span-2">
+    <div>
+      <Card>
         <CardHeader>
           <CardTitle className="inline-flex items-center gap-2">
             <KeyRound size={18} /> 비밀번호 변경

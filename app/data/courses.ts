@@ -4,6 +4,7 @@ export interface Lesson {
   duration: string;
   videoId?: string;
   description?: string;
+  isPreview?: boolean;
 }
 
 export interface Course {

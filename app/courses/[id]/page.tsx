@@ -12,6 +12,7 @@ import {
   BarChart3,
   Sparkles,
   PlayCircle,
+  Eye,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -57,6 +58,22 @@ export default async function CourseDetailPage({
 
   if (error || !data) notFound();
 
+  // is_preview 컬럼 별도 조회 (마이그레이션 전 폴백)
+  let previewMap: Record<string, boolean> = {};
+  try {
+    const { data: previewData } = await db
+      .from("lessons")
+      .select("id, is_preview")
+      .eq("course_id", id);
+    if (previewData) {
+      for (const row of previewData) {
+        previewMap[row.id] = row.is_preview ?? false;
+      }
+    }
+  } catch {
+    // 컬럼 미존재 시 무시
+  }
+
   let enrolled = false;
   let watchedCount = 0;
   let myReviewId: string | null = null;
@@ -82,6 +99,7 @@ export default async function CourseDetailPage({
   const lessons = (data.lessons ?? []).sort(
     (a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order
   );
+  const hasPreviewLesson = lessons.some((l: { id: string }) => previewMap[l.id]);
   const progressPct = lessons.length > 0 ? Math.round((watchedCount / lessons.length) * 100) : 0;
   const heroThumb = getCourseThumbnailRenderProps(data.thumbnail, data.title);
 
@@ -164,14 +182,31 @@ export default async function CourseDetailPage({
                         {i + 1}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-semibold text-sm">{lesson.title}</p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-semibold text-sm">{lesson.title}</p>
+                          {previewMap[lesson.id] && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
+                              <Eye size={9} /> 미리보기
+                            </span>
+                          )}
+                        </div>
                         {lesson.description && (
                           <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{lesson.description}</p>
                         )}
                       </div>
-                      <span className="text-xs text-muted-foreground inline-flex items-center gap-1 whitespace-nowrap mt-0.5">
-                        <Clock size={11} /> {lesson.duration}
-                      </span>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {previewMap[lesson.id] && !enrolled && (
+                          <Link
+                            href={`/courses/${id}/player`}
+                            className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
+                          >
+                            <PlayCircle size={12} /> 재생
+                          </Link>
+                        )}
+                        <span className="text-xs text-muted-foreground inline-flex items-center gap-1 whitespace-nowrap">
+                          <Clock size={11} /> {lesson.duration}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -197,6 +232,16 @@ export default async function CourseDetailPage({
                 </div>
 
                 <EnrollButton courseId={data.id} enrolled={enrolled} loggedIn={!!session?.user?.id} />
+
+                {/* 미리보기 버튼 — 미수강 + 미리보기 강의 있을 때 */}
+                {!enrolled && hasPreviewLesson && (
+                  <Link
+                    href={`/courses/${data.id}/player`}
+                    className="w-full mb-4 inline-flex items-center justify-center gap-2 rounded-md border border-border px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+                  >
+                    <Eye size={14} /> 무료 미리보기 강의 보기
+                  </Link>
+                )}
 
                 {enrolled && (
                   <div className="rounded-xl border border-border bg-muted/20 p-3 mb-4">

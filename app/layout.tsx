@@ -3,6 +3,7 @@ import "./globals.css";
 import Providers from "./components/Providers";
 import Navbar from "./components/Navbar";
 import EducationFooter from "./components/EducationFooter";
+import ChatWidget from "./components/ChatWidget";
 
 export const metadata: Metadata = {
   title: "Sellernote - 글로벌 무역, 쉽고 빠르게",
@@ -24,9 +25,14 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased text-gray-900 bg-white">
         <Providers>
-          <Navbar />
-          {children}
-          <EducationFooter />
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <main className="flex-1">
+              {children}
+            </main>
+            <EducationFooter />
+          </div>
+          <ChatWidget />
         </Providers>
       </body>
     </html>

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, CheckCircle2, Loader2, ChevronDown, ArrowLeft, ShieldCheck, MessageSquareText } from "lucide-react";
+import { Lock, CheckCircle2, Loader2, ChevronDown, ArrowLeft, MessageSquareText } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -100,7 +100,7 @@ export default function InquiryNewPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-5 items-start">
+      <div>
         <Card>
           <CardHeader>
             <CardTitle className="inline-flex items-center gap-2">
@@ -205,21 +205,6 @@ export default function InquiryNewPage() {
                 </Button>
               </div>
             </form>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="inline-flex items-center gap-2">
-              <ShieldCheck size={18} /> 작성 가이드
-            </CardTitle>
-            <CardDescription>처리 시간을 줄이기 위한 권장 사항입니다.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>1. 문제 상황과 시점을 구체적으로 작성해주세요.</p>
-            <p>2. 결제/환불 문의는 주문 정보(시간, 금액)를 포함해주세요.</p>
-            <p>3. 비밀번호는 상세 조회 시 필요하니 꼭 기억해주세요.</p>
-            <p>4. 개인정보(카드번호/주민번호)는 입력하지 마세요.</p>
           </CardContent>
         </Card>
       </div>

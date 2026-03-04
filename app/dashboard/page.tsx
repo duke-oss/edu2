@@ -2,7 +2,7 @@
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase";
 import Link from "next/link";
-import { User, PlayCircle, MessageSquare, LockKeyhole } from "lucide-react";
+import { User, PlayCircle, MessageSquare } from "lucide-react";
 import ProfileSection from "./ProfileSection";
 import CoursesSection from "./CoursesSection";
 import InquiriesSection from "./InquiriesSection";
@@ -38,10 +38,9 @@ type InquiryRow = {
 };
 
 const TABS = [
-  { id: "profile", label: "프로필", icon: User },
   { id: "courses", label: "내 강의", icon: PlayCircle },
+  { id: "profile", label: "프로필/보안", icon: User },
   { id: "inquiries", label: "내 문의", icon: MessageSquare },
-  { id: "password", label: "비밀번호 변경", icon: LockKeyhole },
 ];
 
 export default async function DashboardPage({
@@ -52,7 +51,7 @@ export default async function DashboardPage({
   const session = await auth();
   if (!session?.user?.id) redirect("/login?callbackUrl=/dashboard");
 
-  const { tab = "profile" } = await searchParams;
+  const { tab = "courses" } = await searchParams;
   const db = createAdminClient();
   const userId = session.user.id;
 
@@ -63,8 +62,7 @@ export default async function DashboardPage({
     .single();
 
   const hasPassword = !!user?.password;
-  const visibleTabs = TABS.filter((t) => t.id !== "password" || hasPassword);
-  const activeTab = visibleTabs.find((t) => t.id === tab)?.id ?? "profile";
+  const activeTab = TABS.find((t) => t.id === tab)?.id ?? "courses";
 
   let enrollments: EnrollmentRow[] = [];
   let inquiries: InquiryRow[] = [];
@@ -131,8 +129,8 @@ export default async function DashboardPage({
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-2 mb-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {visibleTabs.map((t) => {
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+          {TABS.map((t) => {
             const Icon = t.icon;
             const isActive = activeTab === t.id;
             return (
@@ -154,20 +152,22 @@ export default async function DashboardPage({
       </div>
 
       {activeTab === "profile" && (
-        <ProfileSection
-          user={{
-            id: user?.id ?? "",
-            name: user?.name ?? null,
-            email: user?.email ?? "",
-            image: user?.image ?? null,
-            createdAt: user?.created_at ?? "",
-            hasPassword,
-          }}
-        />
+        <div className="space-y-5">
+          <ProfileSection
+            user={{
+              id: user?.id ?? "",
+              name: user?.name ?? null,
+              email: user?.email ?? "",
+              image: user?.image ?? null,
+              createdAt: user?.created_at ?? "",
+              hasPassword,
+            }}
+          />
+          {hasPassword && <PasswordSection />}
+        </div>
       )}
       {activeTab === "courses" && <CoursesSection enrollments={enrollments} />}
       {activeTab === "inquiries" && <InquiriesSection inquiries={inquiries} />}
-      {activeTab === "password" && hasPassword && <PasswordSection />}
     </div>
   );
 }

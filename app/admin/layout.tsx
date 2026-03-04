@@ -1,14 +1,16 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { requireAdmin } from "@/lib/admin";
-import { LayoutDashboard, Users, BookOpen, MessageSquare, Tag, Paperclip } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, MessageSquare, Tag, Paperclip, FileText, MessagesSquare } from "lucide-react";
 import AdminLogout from "./AdminLogout";
 
 const navItems = [
   { href: "/admin", label: "대시보드", icon: LayoutDashboard },
   { href: "/admin/users", label: "사용자 관리", icon: Users },
   { href: "/admin/courses", label: "강의 관리", icon: BookOpen },
+  { href: "/admin/blog", label: "블로그 관리", icon: FileText },
   { href: "/admin/inquiries", label: "문의 관리", icon: MessageSquare },
+  { href: "/admin/chat", label: "채팅 관리", icon: MessagesSquare },
   { href: "/admin/coupons", label: "쿠폰 관리", icon: Tag },
 ];
 

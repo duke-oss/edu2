@@ -17,6 +17,7 @@ interface Lesson {
   duration: string;
   description: string;
   video_id: string;
+  is_preview: boolean;
 }
 
 interface CourseFormData {
@@ -46,6 +47,7 @@ const defaultLesson = (): Lesson => ({
   duration: "",
   description: "",
   video_id: "",
+  is_preview: false,
 });
 
 function extractYoutubeId(input: string): string {
@@ -106,7 +108,7 @@ export default function CourseForm({ initialData, mode }: CourseFormProps) {
     }));
   }
 
-  function updateLesson(index: number, key: keyof Lesson, value: string) {
+  function updateLesson(index: number, key: keyof Lesson, value: string | boolean) {
     setForm((prev) => ({
       ...prev,
       lessons: prev.lessons.map((l, i) => (i === index ? { ...l, [key]: value } : l)),
@@ -402,13 +404,25 @@ export default function CourseForm({ initialData, mode }: CourseFormProps) {
                   />
                 </div>
                 <div>
-                  <Label className="mb-1 block text-xs">Video ID (선택 — YouTube URL 또는 ID)</Label>
+                  <Label className="mb-1 block text-xs">Video ID (선택 — YouTube URL/ID 또는 Vimeo 숫자 ID)</Label>
                   <Input
                     value={lesson.video_id}
                     onChange={(e) => updateLesson(index, "video_id", e.target.value)}
                     onBlur={(e) => updateLesson(index, "video_id", extractYoutubeId(e.target.value))}
-                    placeholder="YouTube URL 또는 Video ID"
+                    placeholder="YouTube URL / Vimeo ID (예: 76979871)"
                   />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id={`preview-${index}`}
+                    checked={lesson.is_preview}
+                    onChange={(e) => updateLesson(index, "is_preview", e.target.checked)}
+                    className="w-4 h-4 accent-primary"
+                  />
+                  <Label htmlFor={`preview-${index}`} className="text-xs cursor-pointer">
+                    무료 미리보기 강의 (비수강자 공개)
+                  </Label>
                 </div>
               </div>
             ))}

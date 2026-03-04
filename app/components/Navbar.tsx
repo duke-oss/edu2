@@ -56,6 +56,7 @@ const NAV_ITEMS = [
   { label: "회사소개", href: "/about" },
   { label: "오프라인 강의", href: "/offline" },
   { label: "온라인 강의", href: "/courses" },
+  { label: "블로그", href: "/blog" },
   { label: "문의하기", href: "/inquiry" },
 ];
 

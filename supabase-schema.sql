@@ -267,3 +267,47 @@ create table if not exists course_attachments (
   file_size   bigint,
   created_at  timestamptz not null default now()
 );
+
+-- 블로그 포스트
+create table if not exists blog_posts (
+  id          uuid default uuid_generate_v4() primary key,
+  title       text not null,
+  slug        text not null unique,
+  category    text not null default '무역 동향',
+  excerpt     text,
+  content     text not null default '',
+  published   boolean not null default false,
+  author      text not null default '관리자',
+  read_time   text default '5분',
+  thumbnail   text,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+create index if not exists blog_posts_slug_idx      on blog_posts(slug);
+create index if not exists blog_posts_published_idx on blog_posts(published, created_at desc);
+
+-- 맛보기 강의 컬럼 (is_preview = true인 레슨은 미수강자도 시청 가능)
+alter table lessons add column if not exists is_preview boolean default false;
+
+-- 1:1 채팅 대화 (1 user = 1 conversation)
+create table if not exists chat_conversations (
+  id             uuid default uuid_generate_v4() primary key,
+  user_id        uuid not null references users(id) on delete cascade,
+  status         text not null default 'open' check (status in ('open', 'closed')),
+  last_message_at timestamptz not null default now(),
+  created_at     timestamptz not null default now(),
+  unique (user_id)
+);
+
+create table if not exists chat_messages (
+  id              uuid default uuid_generate_v4() primary key,
+  conversation_id uuid not null references chat_conversations(id) on delete cascade,
+  sender_type     text not null check (sender_type in ('user', 'admin')),
+  content         text not null,
+  created_at      timestamptz not null default now(),
+  read_at         timestamptz  -- NULL = 상대방이 아직 읽지 않음
+);
+
+create index if not exists chat_messages_conv_idx on chat_messages(conversation_id, created_at);
+create index if not exists chat_conv_last_msg_idx on chat_conversations(last_message_at desc);

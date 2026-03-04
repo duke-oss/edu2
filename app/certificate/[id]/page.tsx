@@ -1,6 +1,6 @@
 ﻿import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase";
-import { GraduationCap, Award } from "lucide-react";
+import { GraduationCap, Award, ExternalLink } from "lucide-react";
 import CertificateActions from "./CertificateActions";
 
 export const dynamic = "force-dynamic";
@@ -103,6 +103,22 @@ export default async function CertificatePage({
         </div>
 
         <p className="text-center text-xs text-muted-foreground/50 mt-6">수강증 번호: {id}</p>
+      </div>
+
+      {/* 쉽다 전환 CTA */}
+      <div className="w-full max-w-2xl mt-6 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-500 p-6 text-white text-center print:hidden">
+        <p className="font-bold text-lg mb-1">이제 직접 수입해볼 차례입니다</p>
+        <p className="text-sm text-white/80 mb-4">
+          배운 내용을 바탕으로 쉽다에서 첫 포워딩 견적을 무료로 받아보세요.
+        </p>
+        <a
+          href="https://www.ship-da.com/forwarding/quote"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 bg-white text-blue-600 font-bold rounded-full px-6 py-2.5 text-sm hover:bg-blue-50 transition-colors"
+        >
+          쉽다에서 무료 견적 받기 <ExternalLink size={14} />
+        </a>
       </div>
     </div>
   );

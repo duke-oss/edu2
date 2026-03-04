@@ -442,36 +442,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <footer className="bg-gray-950 text-gray-400 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-10">
-            <div>
-              <p className="text-white font-bold text-lg mb-2">Sellernote</p>
-              <p className="text-sm max-w-xs leading-relaxed">무역을 쉽게 만드는 사람들.<br />수입무역 교육 · 물류 · SaaS 생태계</p>
-            </div>
-            <div className="flex flex-wrap gap-x-12 gap-y-4 text-sm">
-              <div className="space-y-2">
-                <p className="text-gray-500 font-semibold text-xs uppercase tracking-wide mb-3">서비스</p>
-                <p className="hover:text-white cursor-pointer transition-colors">셀러노트 강의</p>
-                <p className="hover:text-white cursor-pointer transition-colors">쉽다 (ShipDa)</p>
-                <p className="hover:text-white cursor-pointer transition-colors">위딜라이즈 (WeDealize)</p>
-              </div>
-              <div className="space-y-2">
-                <p className="text-gray-500 font-semibold text-xs uppercase tracking-wide mb-3">회사</p>
-                <Link href="/about" className="block hover:text-white transition-colors">회사소개</Link>
-                <Link href="/inquiry" className="block hover:text-white transition-colors">문의하기</Link>
-                <a href="mailto:api@seller-note.com" className="hover:text-white transition-colors block">API 문의</a>
-              </div>
-            </div>
-          </div>
-          <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
-            <p>© 2024 Sellernote Inc. 모든 권리 보유.</p>
-            <p>api@seller-note.com</p>
-          </div>
-        </div>
-      </footer>
-
     </div>
   );
 }

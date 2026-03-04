@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useCallback, useEffect, useMemo } from "react";
 import Link from "next/link";
@@ -18,6 +18,9 @@ import {
   Download,
   Sparkles,
   BarChart3,
+  Lock,
+  ExternalLink,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -25,11 +28,50 @@ type Props = {
   course: Course;
   watchedLessonIds: string[];
   userId: string | null;
+  isEnrolled: boolean;
 };
 
-export default function CoursePlayer({ course, watchedLessonIds, userId }: Props) {
+/** Vimeo: 순수 숫자 ID / YouTube: 영숫자 혼합 */
+function detectPlatform(videoId: string): "vimeo" | "youtube" {
+  return /^\d+$/.test(videoId) ? "vimeo" : "youtube";
+}
+
+function VideoEmbed({ videoId, title }: { videoId: string; title: string }) {
+  const platform = detectPlatform(videoId);
+
+  if (platform === "vimeo") {
+    return (
+      <iframe
+        className="w-full h-full"
+        src={`https://player.vimeo.com/video/${videoId}?autoplay=1&speed=1&color=6366f1&title=0&byline=0`}
+        title={title}
+        allow="autoplay; fullscreen; picture-in-picture"
+        allowFullScreen
+      />
+    );
+  }
+
+  return (
+    <iframe
+      className="w-full h-full"
+      src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
+      title={title}
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowFullScreen
+    />
+  );
+}
+
+export default function CoursePlayer({ course, watchedLessonIds, userId, isEnrolled }: Props) {
   const router = useRouter();
-  const [activeLesson, setActiveLesson] = useState(course.lessons[0] ?? null);
+
+  // 미수강자는 첫 번째 미리보기 강의에서 시작
+  const firstAccessibleLesson = useMemo(() => {
+    if (isEnrolled) return course.lessons[0] ?? null;
+    return course.lessons.find((l) => l.isPreview) ?? course.lessons[0] ?? null;
+  }, [isEnrolled, course.lessons]);
+
+  const [activeLesson, setActiveLesson] = useState(firstAccessibleLesson);
   const [watched, setWatched] = useState<Set<string>>(() => new Set(watchedLessonIds));
   const [certificateId, setCertificateId] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<{ id: string; name: string; file_url: string }[]>([]);
@@ -42,6 +84,11 @@ export default function CoursePlayer({ course, watchedLessonIds, userId }: Props
   const currentIndex = useMemo(
     () => (activeLesson ? course.lessons.indexOf(activeLesson) : -1),
     [activeLesson, course.lessons]
+  );
+
+  const canAccessLesson = useCallback(
+    (lesson: Course["lessons"][number]) => isEnrolled || !!lesson.isPreview,
+    [isEnrolled]
   );
 
   const issueCertificate = useCallback(async () => {
@@ -88,10 +135,11 @@ export default function CoursePlayer({ course, watchedLessonIds, userId }: Props
 
   const handleSelectLesson = useCallback(
     (lesson: Course["lessons"][number]) => {
+      if (!canAccessLesson(lesson)) return;
       if (activeLesson) markWatched(activeLesson.id);
       setActiveLesson(lesson);
     },
-    [activeLesson, markWatched]
+    [activeLesson, markWatched, canAccessLesson]
   );
 
   if (!activeLesson) {
@@ -101,6 +149,8 @@ export default function CoursePlayer({ course, watchedLessonIds, userId }: Props
       </div>
     );
   }
+
+  const isActiveLocked = !canAccessLesson(activeLesson);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
@@ -131,24 +181,35 @@ export default function CoursePlayer({ course, watchedLessonIds, userId }: Props
           <span className="text-sm text-zinc-300 truncate max-w-[45vw] sm:max-w-[320px]">{course.title}</span>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0 ml-4">
-          <div className="hidden sm:block text-right">
-            <p className="text-[11px] text-zinc-400">
-              {watchedCount} / {totalLessons}강 완료
-            </p>
-            <div className="w-28 h-1.5 bg-zinc-700 rounded-full overflow-hidden mt-1">
-              <motion.div
-                className={`h-full rounded-full ${isComplete ? "bg-emerald-400" : "bg-primary"}`}
-                initial={{ width: 0 }}
-                animate={{ width: `${progressPct}%` }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-              />
+        {isEnrolled && (
+          <div className="flex items-center gap-3 shrink-0 ml-4">
+            <div className="hidden sm:block text-right">
+              <p className="text-[11px] text-zinc-400">
+                {watchedCount} / {totalLessons}강 완료
+              </p>
+              <div className="w-28 h-1.5 bg-zinc-700 rounded-full overflow-hidden mt-1">
+                <motion.div
+                  className={`h-full rounded-full ${isComplete ? "bg-emerald-400" : "bg-primary"}`}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progressPct}%` }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                />
+              </div>
             </div>
+            <span className={`text-sm font-bold tabular-nums ${isComplete ? "text-emerald-400" : "text-primary"}`}>
+              {progressPct}%
+            </span>
           </div>
-          <span className={`text-sm font-bold tabular-nums ${isComplete ? "text-emerald-400" : "text-primary"}`}>
-            {progressPct}%
-          </span>
-        </div>
+        )}
+
+        {!isEnrolled && (
+          <Link
+            href={`/payment/${course.id}`}
+            className="shrink-0 ml-4 inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
+          >
+            수강 신청하기
+          </Link>
+        )}
       </nav>
 
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] min-h-[calc(100vh-64px)]">
@@ -162,14 +223,25 @@ export default function CoursePlayer({ course, watchedLessonIds, userId }: Props
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
             >
-              {activeLesson.videoId ? (
-                <iframe
-                  className="w-full h-full"
-                  src={`https://www.youtube.com/embed/${activeLesson.videoId}?autoplay=1`}
-                  title={activeLesson.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
+              {isActiveLocked ? (
+                /* 잠금 화면 */
+                <div className="w-full h-full flex flex-col items-center justify-center gap-5 bg-zinc-900">
+                  <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center">
+                    <Lock size={28} className="text-zinc-500" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-zinc-300 font-semibold">수강 신청 후 이용 가능한 강의입니다</p>
+                    <p className="text-zinc-500 text-sm mt-1">강의를 결제하고 모든 강의를 무제한 수강하세요.</p>
+                  </div>
+                  <Link
+                    href={`/payment/${course.id}`}
+                    className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
+                  >
+                    지금 수강 신청하기 →
+                  </Link>
+                </div>
+              ) : activeLesson.videoId ? (
+                <VideoEmbed videoId={activeLesson.videoId} title={activeLesson.title} />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-zinc-900">
                   <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center">
@@ -191,13 +263,50 @@ export default function CoursePlayer({ course, watchedLessonIds, userId }: Props
               transition={{ duration: 0.2 }}
             >
               <div className="max-w-4xl">
+                {/* 완강 배너 */}
                 {isComplete && (
-                  <div className="mb-5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 flex items-start gap-2.5">
+                  <div className="mb-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 flex items-start gap-2.5">
                     <Sparkles size={16} className="text-emerald-300 mt-0.5 shrink-0" />
                     <div>
                       <p className="text-sm font-semibold text-emerald-200">축하합니다! 강의를 완강했어요.</p>
                       <p className="text-xs text-emerald-100/80 mt-0.5">수료증 확인 및 후기를 남기면 학습 이력이 더 풍성해집니다.</p>
                     </div>
+                  </div>
+                )}
+
+                {/* 쉽다 전환 CTA — 완강 시 표시 */}
+                {isComplete && (
+                  <div className="mb-5 rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-3.5 flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold text-blue-200">이제 직접 수입해볼 차례입니다</p>
+                      <p className="text-xs text-blue-100/70 mt-0.5">쉽다로 첫 포워딩 견적을 무료로 조회해보세요.</p>
+                    </div>
+                    <a
+                      href="https://www.ship-da.com/forwarding/quote"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-blue-600 hover:bg-blue-500 px-4 py-1.5 text-xs text-white font-semibold transition-colors"
+                    >
+                      쉽다 시작하기 <ExternalLink size={11} />
+                    </a>
+                  </div>
+                )}
+
+                {/* 미리보기 배너 — 미수강자 */}
+                {!isEnrolled && activeLesson.isPreview && (
+                  <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
+                      <Eye size={14} className="text-amber-300 shrink-0" />
+                      <p className="text-sm text-amber-200">
+                        <span className="font-semibold">무료 미리보기 강의</span>입니다. 전체 강의를 수강하려면 수강 신청해주세요.
+                      </p>
+                    </div>
+                    <Link
+                      href={`/payment/${course.id}`}
+                      className="shrink-0 inline-flex items-center gap-1 rounded-full bg-amber-500 hover:bg-amber-400 px-3 py-1.5 text-xs text-white font-semibold transition-colors"
+                    >
+                      수강 신청 →
+                    </Link>
                   </div>
                 )}
 
@@ -218,57 +327,59 @@ export default function CoursePlayer({ course, watchedLessonIds, userId }: Props
                   <p className="text-zinc-300 leading-relaxed">{activeLesson.description}</p>
                 )}
 
-                <div className="flex flex-wrap items-center gap-2.5 mt-6">
-                  {currentIndex > 0 && (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="rounded-full bg-zinc-800 text-zinc-200 hover:bg-zinc-700"
-                      onClick={() => handleSelectLesson(course.lessons[currentIndex - 1])}
-                    >
-                      이전 강의
-                    </Button>
-                  )}
+                {isEnrolled && (
+                  <div className="flex flex-wrap items-center gap-2.5 mt-6">
+                    {currentIndex > 0 && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="rounded-full bg-zinc-800 text-zinc-200 hover:bg-zinc-700"
+                        onClick={() => handleSelectLesson(course.lessons[currentIndex - 1])}
+                      >
+                        이전 강의
+                      </Button>
+                    )}
 
-                  {currentIndex < totalLessons - 1 ? (
-                    <Button
-                      size="sm"
-                      className="rounded-full gap-1"
-                      onClick={() => handleSelectLesson(course.lessons[currentIndex + 1])}
-                    >
-                      다음 강의 <ChevronRight size={14} />
-                    </Button>
-                  ) : (
-                    <Button
-                      size="sm"
-                      className="rounded-full gap-1 bg-emerald-600 hover:bg-emerald-500"
-                      onClick={() => markWatched(activeLesson.id)}
-                      disabled={watched.has(activeLesson.id)}
-                    >
-                      <CheckCircle size={14} />
-                      {watched.has(activeLesson.id) ? "완강 처리됨" : "완료 표시"}
-                    </Button>
-                  )}
+                    {currentIndex < totalLessons - 1 ? (
+                      <Button
+                        size="sm"
+                        className="rounded-full gap-1"
+                        onClick={() => handleSelectLesson(course.lessons[currentIndex + 1])}
+                      >
+                        다음 강의 <ChevronRight size={14} />
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        className="rounded-full gap-1 bg-emerald-600 hover:bg-emerald-500"
+                        onClick={() => markWatched(activeLesson.id)}
+                        disabled={watched.has(activeLesson.id)}
+                      >
+                        <CheckCircle size={14} />
+                        {watched.has(activeLesson.id) ? "완강 처리됨" : "완료 표시"}
+                      </Button>
+                    )}
 
-                  {certificateId && (
-                    <Link
-                      href={`/certificate/${certificateId}`}
-                      target="_blank"
-                      className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1.5 text-xs text-amber-300 hover:bg-amber-400/20"
-                    >
-                      <Award size={13} /> 수료증 보기
-                    </Link>
-                  )}
+                    {certificateId && (
+                      <Link
+                        href={`/certificate/${certificateId}`}
+                        target="_blank"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1.5 text-xs text-amber-300 hover:bg-amber-400/20"
+                      >
+                        <Award size={13} /> 수료증 보기
+                      </Link>
+                    )}
 
-                  {isComplete && (
-                    <Link
-                      href={`/courses/${course.id}?review=write#reviews`}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-sky-400/40 bg-sky-400/10 px-3 py-1.5 text-xs text-sky-300 hover:bg-sky-400/20"
-                    >
-                      후기 작성하러 가기
-                    </Link>
-                  )}
-                </div>
+                    {isComplete && (
+                      <Link
+                        href={`/courses/${course.id}?review=write#reviews`}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-sky-400/40 bg-sky-400/10 px-3 py-1.5 text-xs text-sky-300 hover:bg-sky-400/20"
+                      >
+                        후기 작성하러 가기
+                      </Link>
+                    )}
+                  </div>
+                )}
 
                 {attachments.length > 0 && (
                   <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3">
@@ -300,25 +411,36 @@ export default function CoursePlayer({ course, watchedLessonIds, userId }: Props
           <div className="px-4 py-4 border-b border-zinc-800">
             <div className="flex items-center justify-between mb-2">
               <h2 className="font-semibold text-sm">커리큘럼</h2>
-              <span className="text-xs text-zinc-400 inline-flex items-center gap-1">
-                <BarChart3 size={12} /> {watchedCount}/{totalLessons}
-              </span>
+              {isEnrolled ? (
+                <span className="text-xs text-zinc-400 inline-flex items-center gap-1">
+                  <BarChart3 size={12} /> {watchedCount}/{totalLessons}
+                </span>
+              ) : (
+                <span className="text-xs text-zinc-400">
+                  {course.lessons.filter((l) => l.isPreview).length}강 무료 공개
+                </span>
+              )}
             </div>
-            <div className="w-full h-1.5 bg-zinc-700 rounded-full overflow-hidden">
-              <motion.div
-                className={`h-full rounded-full ${isComplete ? "bg-emerald-400" : "bg-primary"}`}
-                initial={{ width: 0 }}
-                animate={{ width: `${progressPct}%` }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-              />
-            </div>
-            <p className="text-[11px] text-zinc-400 mt-1.5">진도율 {progressPct}%</p>
+            {isEnrolled && (
+              <>
+                <div className="w-full h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+                  <motion.div
+                    className={`h-full rounded-full ${isComplete ? "bg-emerald-400" : "bg-primary"}`}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progressPct}%` }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                  />
+                </div>
+                <p className="text-[11px] text-zinc-400 mt-1.5">진도율 {progressPct}%</p>
+              </>
+            )}
           </div>
 
           <div className="overflow-y-auto flex-1">
             {course.lessons.map((lesson, index) => {
               const isActive = lesson.id === activeLesson.id;
               const isWatched = watched.has(lesson.id);
+              const isLocked = !canAccessLesson(lesson);
 
               return (
                 <motion.button
@@ -326,14 +448,19 @@ export default function CoursePlayer({ course, watchedLessonIds, userId }: Props
                   initial={{ opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.25, delay: index * 0.02 }}
-                  whileHover={{ backgroundColor: "rgba(255,255,255,0.03)" }}
+                  whileHover={!isLocked ? { backgroundColor: "rgba(255,255,255,0.03)" } : undefined}
                   onClick={() => handleSelectLesson(lesson)}
+                  disabled={isLocked}
                   className={`w-full text-left px-4 py-3.5 flex items-start gap-3 border-b border-zinc-800/70 transition-colors ${
                     isActive ? "bg-zinc-800/90 border-l-2 border-l-primary" : ""
-                  }`}
+                  } ${isLocked ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
                   <div className="shrink-0 mt-0.5">
-                    {isActive ? (
+                    {isLocked ? (
+                      <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center">
+                        <Lock size={11} className="text-zinc-500" />
+                      </div>
+                    ) : isActive ? (
                       <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
                         <Play size={10} className="ml-0.5 fill-white text-white" />
                       </div>
@@ -349,13 +476,20 @@ export default function CoursePlayer({ course, watchedLessonIds, userId }: Props
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p
-                      className={`text-sm leading-snug ${
-                        isActive ? "text-white font-medium" : isWatched ? "text-zinc-400" : "text-zinc-300"
-                      }`}
-                    >
-                      {lesson.title}
-                    </p>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <p
+                        className={`text-sm leading-snug ${
+                          isActive ? "text-white font-medium" : isWatched ? "text-zinc-400" : "text-zinc-300"
+                        }`}
+                      >
+                        {lesson.title}
+                      </p>
+                      {lesson.isPreview && !isEnrolled && (
+                        <span className="text-[9px] font-bold tracking-wide text-amber-400 bg-amber-400/10 border border-amber-400/30 rounded px-1 py-0.5">
+                          FREE
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-zinc-500 mt-1 inline-flex items-center gap-1">
                       <Clock size={11} /> {lesson.duration}
                     </p>
