@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { createClient } from "@supabase/supabase-js";
 import { auth } from "@/auth";
+import { requireAdmin } from "@/lib/admin";
 
 const db = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
-// 목록 조회
+// 목록 조회 (어드민 전용)
 export async function GET() {
+  const admin = await requireAdmin();
+  if (!admin) return NextResponse.json({ error: "권한이 없습니다." }, { status: 401 });
+
   const { data, error } = await db
     .from("inquiries")
     .select("id, title, category, created_at, users(name, email)")

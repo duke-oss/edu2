@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -20,19 +21,18 @@ export default function AdminLoginPage() {
     setError("");
     setLoading(true);
 
-    const res = await fetch("/api/admin/auth", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
     });
 
     setLoading(false);
 
-    if (res.ok) {
+    if (result?.ok) {
       router.push("/admin");
     } else {
-      const data = await res.json();
-      setError(data.error ?? "로그인 실패");
+      setError("이메일 또는 비밀번호가 올바르지 않습니다.");
     }
   }
 

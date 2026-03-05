@@ -37,20 +37,7 @@ async function resolveChatUserId(
     .eq("email", email)
     .maybeSingle();
 
-  if (byEmail?.id) return byEmail.id;
-
-  const { data: created } = await db
-    .from("users")
-    .insert({
-      email,
-      name: user.name ?? null,
-      image: user.image ?? null,
-      email_verified: new Date().toISOString(),
-    })
-    .select("id")
-    .single();
-
-  return created?.id ?? null;
+  return byEmail?.id ?? null;
 }
 
 // GET /api/chat — 내 conversation + messages 조회

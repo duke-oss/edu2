@@ -33,6 +33,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
+        // Admin credentials check (env-based, not in users table)
+        if (
+          credentials.email === process.env.ADMIN_EMAIL &&
+          credentials.password === process.env.ADMIN_PASSWORD
+        ) {
+          return {
+            id: "admin",
+            email: process.env.ADMIN_EMAIL as string,
+            name: "Admin",
+            role: "admin",
+          };
+        }
+
         const db = getDb();
         const { data: user } = await db
           .from("users")
@@ -52,7 +65,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new Error("이메일 인증을 완료해주세요.");
         }
 
-        return { id: user.id, email: user.email, name: user.name, image: user.image };
+        return { id: user.id, email: user.email, name: user.name, image: user.image, role: "user" };
       },
     }),
   ],
@@ -86,17 +99,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
             if (created) token.id = created.id;
           }
+          token.role = "user";
         } catch (e) {
           console.error("[auth] JWT callback Supabase error:", e);
         }
       }
 
       if (user?.id && !token.id) token.id = user.id;
+      if (user?.role) token.role = user.role;
       return token;
     },
 
     async session({ session, token }) {
       if (token.id) session.user.id = token.id as string;
+      if (token.role) session.user.role = token.role as string;
       return session;
     },
   },
